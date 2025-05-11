@@ -7,8 +7,16 @@ import 'leaflet/dist/leaflet.css';
 import { PersonMapData, PersonImage as PersonImageType } from '@/lib/types';
 import Image from 'next/image';
 
+// Define type for Leaflet's Icon prototype
+interface IconDefaultOptions {
+  _getIconUrl?: unknown;
+  iconRetinaUrl: string;
+  iconUrl: string;
+  shadowUrl: string;
+}
+
 // Fix for default Leaflet icon path issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete ((L.Icon.Default.prototype as unknown) as IconDefaultOptions)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',

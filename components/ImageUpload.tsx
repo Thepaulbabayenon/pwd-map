@@ -18,10 +18,10 @@ interface ImageUploaderProps {
 
 // Define type for API response
 interface AuthResponse {
-  publicKey: string;
   signature: string;
   token: string;
-  expire: string;
+  expire: number;
+  publicKey: string;
 }
 
 interface UploadResponse {
@@ -121,7 +121,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     try {
       // Fetch authentication parameters from your backend
       const authResponse = await fetch('/api/imagekit');
+      
+      if (!authResponse.ok) {
+        throw new Error(`Authentication failed: ${authResponse.statusText}`);
+      }
+      
       const authData: AuthResponse = await authResponse.json();
+      console.log('Auth data received:', authData);
 
       // Prepare the upload form data
       const formData = new FormData();
@@ -129,8 +135,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       formData.append('publicKey', authData.publicKey);
       formData.append('signature', authData.signature);
       formData.append('token', authData.token);
-      formData.append('expire', authData.expire);
+      formData.append('expire', authData.expire.toString());
       formData.append('fileName', `map_image_${Date.now()}`);
+      
+      // Add debugging - log formData content
+      console.log('Uploading with public key:', authData.publicKey);
+      console.log('Token:', authData.token);
+      console.log('Signature:', authData.signature);
+      console.log('Expire:', authData.expire);
 
       // Upload to ImageKit
       const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
@@ -139,10 +151,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
+        const errorText = await uploadResponse.text();
+        console.error('Upload error response:', errorText);
+        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
       }
 
       const uploadResult: UploadResponse = await uploadResponse.json();
+      console.log('Upload successful:', uploadResult);
 
       // Update onChange if provided
       if (onChange) {
@@ -166,6 +181,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       setError('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
+      console.log('Upload complete, component should still be visible');
     }
   };
 

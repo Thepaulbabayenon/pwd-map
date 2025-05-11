@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Child } from '@/lib/types';
+import Image from 'next/image';
 
 // Component to update map view when selected child changes
 function MapViewUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -43,6 +44,14 @@ interface MapProps {
   defaultCenter: number[];
 }
 
+// Define type for Leaflet's Icon prototype
+interface IconDefaultOptions {
+  _getIconUrl?: unknown;
+  iconRetinaUrl: string;
+  iconUrl: string;
+  shadowUrl: string;
+}
+
 const Map: React.FC<MapProps> = ({ 
   markers, 
   selectedMarker, 
@@ -52,7 +61,7 @@ const Map: React.FC<MapProps> = ({
 }) => {
   // Fix Leaflet icon issues for client-side rendering
   useEffect(() => {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    delete ((L.Icon.Default.prototype as unknown) as IconDefaultOptions)._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
       iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -114,11 +123,15 @@ const Map: React.FC<MapProps> = ({
                 <p>Age: {child.age}</p>
                 <p>Disability: {child.disability}</p>
                 {child.imageUrl && (
-                  <img 
-                    src={child.imageUrl} 
-                    alt={child.name} 
-                    className="mt-2 w-24 h-24 object-cover rounded-md"
-                  />
+                  <div className="relative mt-2 w-24 h-24">
+                    <Image 
+                      src={child.imageUrl} 
+                      alt={child.name}
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="96px"
+                    />
+                  </div>
                 )}
               </div>
             </Popup>

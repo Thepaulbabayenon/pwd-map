@@ -1,11 +1,157 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ComponentType } from 'react';
 import { Child, PersonMapData } from '@/lib/types';
-import MapComponent from '@/components/Map/MapComponent';
-import Map from '@/components/Map';
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(() => import('@/components/Map/MapComponent'), { ssr: false });
+const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 import Link from 'next/link';
-import { MapPinIcon, UsersIcon, PieChartIcon, BarChart3Icon, ChevronRightIcon, ArrowRightIcon, HeartIcon, HandIcon, UserPlusIcon } from 'lucide-react';
+import Image from 'next/image';
+import { 
+  MapPinIcon, 
+  UsersIcon, 
+  PieChartIcon, 
+  BarChart3Icon, 
+  ChevronRightIcon, 
+  ArrowRightIcon, 
+  HeartIcon, 
+  HandIcon, 
+  UserPlusIcon 
+} from 'lucide-react';
+
+// Extract components for better organization
+const LoadingIndicator = () => (
+  <div className="flex justify-center items-center h-64">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p className="mt-4 text-sm text-gray-500">Loading data...</p>
+    </div>
+  </div>
+);
+
+const StatisticCard = ({ 
+  color, 
+  icon: Icon, 
+  value, 
+  title, 
+  description 
+}: { 
+  color: string, 
+  icon: ComponentType<{ className?: string }>, 
+  value: string, 
+  title: string, 
+  description: string 
+}) => (
+  <div className="bg-white rounded-xl shadow-sm p-8 text-center relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+    <div className={`absolute top-0 left-0 w-full h-1 bg-${color}-600`}></div>
+    <div className={`bg-${color}-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6`}>
+      <Icon className={`h-8 w-8 text-${color}-600`} />
+    </div>
+    <div className={`text-${color}-600 text-4xl font-bold mb-3`}>{value}</div>
+    <h3 className="text-xl font-semibold mb-2 text-gray-800">{title}</h3>
+    <p className="text-gray-600 text-sm">{description}</p>
+  </div>
+);
+
+const TabButton = ({ 
+  name, 
+  label, 
+  activeTab, 
+  onClick 
+}: { 
+  name: string, 
+  label: string, 
+  activeTab: string, 
+  onClick: (tab: string) => void 
+}) => (
+  <button
+    onClick={() => onClick(name)}
+    className={`py-4 px-6 font-medium text-base relative ${
+      activeTab === name
+        ? 'text-blue-600'
+        : 'text-gray-500 hover:text-gray-700'
+    }`}
+    aria-selected={activeTab === name}
+    role="tab"
+  >
+    {label}
+    {activeTab === name && (
+      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
+    )}
+  </button>
+);
+
+const ChildProfileCard = ({ 
+  child, 
+  onClose 
+}: { 
+  child: Child, 
+  onClose: () => void 
+}) => (
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full">
+    <div className="flex items-center mb-4">
+      <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 mr-4">
+        {child.imageUrl ? (
+          <Image
+            src={child.imageUrl}
+            alt={child.name}
+            width={64}
+            height={64}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
+            <UsersIcon className="h-8 w-8" />
+          </div>
+        )}
+      </div>
+      <div>
+        <h3 className="text-xl font-semibold text-gray-800">{child.name}</h3>
+        <p className="text-sm text-gray-500">ID: #{child.id}</p>
+      </div>
+    </div>
+    
+    <div className="space-y-4 mt-6">
+      <div className="flex border-b border-gray-100 pb-2">
+        <span className="w-1/3 text-gray-500 text-sm">Age</span>
+        <span className="w-2/3 font-medium">{child.age} years</span>
+      </div>
+      <div className="flex border-b border-gray-100 pb-2">
+        <span className="w-1/3 text-gray-500 text-sm">Disability</span>
+        <span className="w-2/3 font-medium">{child.disability}</span>
+      </div>
+      <div className="flex border-b border-gray-100 pb-2">
+        <span className="w-1/3 text-gray-500 text-sm">Address</span>
+        <span className="w-2/3 font-medium">{child.address}</span>
+      </div>
+      <div className="flex pb-2">
+        <span className="w-1/3 text-gray-500 text-sm">Coordinates</span>
+        <span className="w-2/3 font-medium text-gray-700">
+          {child.lat.toFixed(4)}, {child.lng.toFixed(4)}
+        </span>
+      </div>
+    </div>
+    
+    <div className="mt-6 flex space-x-3">
+      <Link 
+        href={`/children/${child.id}`}
+        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-center text-sm font-medium hover:bg-blue-700 transition duration-300"
+      >
+        View Full Profile
+      </Link>
+      <button 
+        className="bg-gray-100 text-gray-700 p-2 rounded-md hover:bg-gray-200 transition duration-300"
+        onClick={onClose}
+        aria-label="Close profile"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+);
 
 export default function HomePage() {
   // State for sample data - in production, this would come from an API
@@ -17,90 +163,101 @@ export default function HomePage() {
 
   // Sample data loading - simulating API fetch
   useEffect(() => {
-    // Simulate API fetch delay
-    const timer = setTimeout(() => {
-      // Sample data for the disabilities map
-      const samplePersons: PersonMapData[] = [
-        {
-          id: 1,
-          firstName: "Maria",
-          lastName: "Garcia",
-          latitude: 14.5995,
-          longitude: 120.9842,
-          disabilityType: "Physical",
-          specificDisability: "Mobility impairment",
-          images: [
-            { imageUrl: "/api/placeholder/150/150", description: "Medical certificate" },
-            { imageUrl: "/api/placeholder/150/150", description: "ID card" }
-          ]
-        },
-        {
-          id: 2,
-          firstName: "John",
-          lastName: "Santos",
-          latitude: 14.6091,
-          longitude: 121.0223,
-          disabilityType: "Visual",
-          specificDisability: "Low vision",
-          images: [
-            { imageUrl: "/api/placeholder/150/150", description: "Medical assessment" }
-          ]
-        },
-        {
-          id: 3,
-          firstName: "Ana",
-          lastName: "Reyes",
-          latitude: 14.5547,
-          longitude: 121.0244,
-          disabilityType: "Hearing",
-          specificDisability: "Partial hearing loss",
-          images: []
-        }
-      ];
+    const fetchData = async () => {
+      try {
+        // In a real app, you would fetch this data from an API
+        // await Promise.all([
+        //   fetch('/api/persons').then(res => res.json()),
+        //   fetch('/api/children').then(res => res.json())
+        // ]);
+        
+        // Sample data for the disabilities map
+        const samplePersons: PersonMapData[] = [
+          {
+            id: 1,
+            firstName: "Maria",
+            lastName: "Garcia",
+            latitude: 14.5995,
+            longitude: 120.9842,
+            disabilityType: "Physical",
+            specificDisability: "Mobility impairment",
+            images: [
+              { imageUrl: "/api/placeholder/150/150", description: "Medical certificate" },
+              { imageUrl: "/api/placeholder/150/150", description: "ID card" }
+            ]
+          },
+          {
+            id: 2,
+            firstName: "John",
+            lastName: "Santos",
+            latitude: 14.6091,
+            longitude: 121.0223,
+            disabilityType: "Visual",
+            specificDisability: "Low vision",
+            images: [
+              { imageUrl: "/api/placeholder/150/150", description: "Medical assessment" }
+            ]
+          },
+          {
+            id: 3,
+            firstName: "Ana",
+            lastName: "Reyes",
+            latitude: 14.5547,
+            longitude: 121.0244,
+            disabilityType: "Hearing",
+            specificDisability: "Partial hearing loss",
+            images: []
+          }
+        ];
 
-      // Sample data for children with disabilities - added address property
-      const sampleChildren: Child[] = [
-        {
-          id: 1,
-          name: "Miguel Cruz",
-          age: 12,
-          disability: "Visual impairment",
-          lat: 14.6042,
-          lng: 121.0448,
-          imageUrl: "/api/placeholder/100/100",
-          address: "123 Rizal St., Makati City"
-        },
-        {
-          id: 2,
-          name: "Sofia Luna",
-          age: 8,
-          disability: "Hearing impairment",
-          lat: 14.5891,
-          lng: 121.0614,
-          imageUrl: "/api/placeholder/100/100",
-          address: "456 Bonifacio Ave., Quezon City"
-        },
-        {
-          id: 3,
-          name: "Carlos Mendoza",
-          age: 15,
-          disability: "Physical disability",
-          lat: 14.5742,
-          lng: 121.0322,
-          imageUrl: "/api/placeholder/100/100",
-          address: "789 Mabini St., Manila"
-        }
-      ];
+        // Sample data for children with disabilities
+        const sampleChildren: Child[] = [
+          {
+            id: 1,
+            name: "Miguel Cruz",
+            age: 12,
+            disability: "Visual impairment",
+            lat: 14.6042,
+            lng: 121.0448,
+            imageUrl: "/api/placeholder/100/100",
+            address: "123 Rizal St., Makati City"
+          },
+          {
+            id: 2,
+            name: "Sofia Luna",
+            age: 8,
+            disability: "Hearing impairment",
+            lat: 14.5891,
+            lng: 121.0614,
+            imageUrl: "/api/placeholder/100/100",
+            address: "456 Bonifacio Ave., Quezon City"
+          },
+          {
+            id: 3,
+            name: "Carlos Mendoza",
+            age: 15,
+            disability: "Physical disability",
+            lat: 14.5742,
+            lng: 121.0322,
+            imageUrl: "/api/placeholder/100/100",
+            address: "789 Mabini St., Manila"
+          }
+        ];
 
-      setPersons(samplePersons);
-      setChildren(sampleChildren);
-      setIsLoading(false);
-    }, 1000);
+        setPersons(samplePersons);
+        setChildren(sampleChildren);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    fetchData();
   }, []);
 
-  // Handle map click for adding new markers (would connect to form in production)
+  // Handle map click for adding new markers
   const handleMapClick = (lat: number, lng: number) => {
     console.log(`New marker position: ${lat}, ${lng}`);
     // In a real app, this would open a form to add a new person at this location
@@ -112,27 +269,26 @@ export default function HomePage() {
     setSelectedChild(child);
   };
 
-  // Loading indicator component
-  const LoadingIndicator = () => (
-    <div className="flex justify-center items-center h-64">
-      <div className="flex flex-col items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="mt-4 text-sm text-gray-500">Loading data...</p>
-      </div>
-    </div>
-  );
+  // Clear selected child
+  const clearSelectedChild = () => {
+    setSelectedChild(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-24 overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20">
-          <div className="absolute inset-0" style={{ 
-            backgroundImage: "url('/api/placeholder/1600/800')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(1px)'
-          }}></div>
+          <div 
+            className="absolute inset-0" 
+            style={{ 
+              backgroundImage: "url('/api/placeholder/1600/800')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(1px)'
+            }}
+            aria-hidden="true"
+          ></div>
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl">
@@ -147,17 +303,19 @@ export default function HomePage() {
               <button
                 onClick={() => setActiveTab('map')}
                 className="bg-white text-blue-800 font-medium py-3 px-8 rounded-md shadow-lg hover:bg-blue-50 transition duration-300 flex items-center group"
+                aria-label="View interactive map"
               >
-                <MapPinIcon className="h-5 w-5 mr-2" />
+                <MapPinIcon className="h-5 w-5 mr-2" aria-hidden="true" />
                 <span>View Interactive Map</span>
-                <ChevronRightIcon className="h-5 w-5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRightIcon className="h-5 w-5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
               </button>
               <Link
                 href="/about"
                 className="bg-transparent border-2 border-white text-white font-medium py-3 px-8 rounded-md hover:bg-white hover:bg-opacity-10 transition duration-300 flex items-center"
+                aria-label="Learn more about the initiative"
               >
                 <span>Learn More</span>
-                <ArrowRightIcon className="h-5 w-5 ml-2" />
+                <ArrowRightIcon className="h-5 w-5 ml-2" aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -169,56 +327,20 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-12 -mt-6">
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {/* Tabs for different views */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('summary')}
-              className={`py-4 px-6 font-medium text-base relative ${
-                activeTab === 'summary'
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Overview
-              {activeTab === 'summary' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('map')}
-              className={`py-4 px-6 font-medium text-base relative ${
-                activeTab === 'map'
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Adults Map
-              {activeTab === 'map' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('children')}
-              className={`py-4 px-6 font-medium text-base relative ${
-                activeTab === 'children'
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Children Map
-              {activeTab === 'children' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
-              )}
-            </button>
+          <div className="flex border-b border-gray-200" role="tablist">
+            <TabButton name="summary" label="Overview" activeTab={activeTab} onClick={setActiveTab} />
+            <TabButton name="map" label="Adults Map" activeTab={activeTab} onClick={setActiveTab} />
+            <TabButton name="children" label="Children Map" activeTab={activeTab} onClick={setActiveTab} />
           </div>
 
           {/* Content based on active tab */}
-          <div className="p-6">
+          <div className="p-6" role="tabpanel">
             {activeTab === 'summary' && (
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-8">
                   <div>
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex items-center">
-                      <HeartIcon className="h-6 w-6 mr-2 text-blue-600" />
+                      <HeartIcon className="h-6 w-6 mr-2 text-blue-600" aria-hidden="true" />
                       Our Mission
                     </h2>
                     <p className="text-lg text-gray-600 leading-relaxed">
@@ -229,31 +351,31 @@ export default function HomePage() {
                   
                   <div>
                     <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
-                      <HandIcon className="h-6 w-6 mr-2 text-blue-600" />
+                      <HandIcon className="h-6 w-6 mr-2 text-blue-600" aria-hidden="true" />
                       Key Objectives
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="bg-blue-50 p-4 rounded-lg flex items-start">
                         <div className="bg-blue-100 rounded-full p-2 mr-3">
-                          <MapPinIcon className="h-4 w-4 text-blue-700" />
+                          <MapPinIcon className="h-4 w-4 text-blue-700" aria-hidden="true" />
                         </div>
                         <p className="text-gray-700">Map the geographic distribution of persons with various disabilities</p>
                       </div>
                       <div className="bg-blue-50 p-4 rounded-lg flex items-start">
                         <div className="bg-blue-100 rounded-full p-2 mr-3">
-                          <UsersIcon className="h-4 w-4 text-blue-700" />
+                          <UsersIcon className="h-4 w-4 text-blue-700" aria-hidden="true" />
                         </div>
                         <p className="text-gray-700">Identify areas with concentrated needs for targeted interventions</p>
                       </div>
                       <div className="bg-blue-50 p-4 rounded-lg flex items-start">
                         <div className="bg-blue-100 rounded-full p-2 mr-3">
-                          <PieChartIcon className="h-4 w-4 text-blue-700" />
+                          <PieChartIcon className="h-4 w-4 text-blue-700" aria-hidden="true" />
                         </div>
                         <p className="text-gray-700">Provide data-driven insights for policymakers and service providers</p>
                       </div>
                       <div className="bg-blue-50 p-4 rounded-lg flex items-start">
                         <div className="bg-blue-100 rounded-full p-2 mr-3">
-                          <BarChart3Icon className="h-4 w-4 text-blue-700" />
+                          <BarChart3Icon className="h-4 w-4 text-blue-700" aria-hidden="true" />
                         </div>
                         <p className="text-gray-700">Support inclusive community planning and development</p>
                       </div>
@@ -263,7 +385,7 @@ export default function HomePage() {
                 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                   <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                    <UsersIcon className="h-5 w-5 mr-2 text-blue-600" />
+                    <UsersIcon className="h-5 w-5 mr-2 text-blue-600" aria-hidden="true" />
                     Disability Overview
                   </h2>
                   
@@ -278,7 +400,14 @@ export default function HomePage() {
                               <span>45%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '45%' }}></div>
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: '45%' }}
+                                role="progressbar"
+                                aria-valuenow={45}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                              ></div>
                             </div>
                           </div>
                           
@@ -288,7 +417,14 @@ export default function HomePage() {
                               <span>30%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-green-500 h-2 rounded-full" style={{ width: '30%' }}></div>
+                              <div 
+                                className="bg-green-500 h-2 rounded-full" 
+                                style={{ width: '30%' }}
+                                role="progressbar"
+                                aria-valuenow={30}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                              ></div>
                             </div>
                           </div>
                           
@@ -298,7 +434,14 @@ export default function HomePage() {
                               <span>25%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '25%' }}></div>
+                              <div 
+                                className="bg-yellow-500 h-2 rounded-full" 
+                                style={{ width: '25%' }}
+                                role="progressbar"
+                                aria-valuenow={25}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                              ></div>
                             </div>
                           </div>
                         </div>
@@ -325,7 +468,7 @@ export default function HomePage() {
                           onClick={() => setActiveTab('map')}
                         >
                           View detailed statistics
-                          <ChevronRightIcon className="h-4 w-4 ml-1" />
+                          <ChevronRightIcon className="h-4 w-4 ml-1" aria-hidden="true" />
                         </button>
                       </div>
                     </>
@@ -345,8 +488,11 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="mt-4 md:mt-0">
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center">
-                      <UserPlusIcon className="h-4 w-4 mr-2" />
+                    <button 
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center"
+                      aria-label="Add new person to the map"
+                    >
+                      <UserPlusIcon className="h-4 w-4 mr-2" aria-hidden="true" />
                       Add New Person
                     </button>
                   </div>
@@ -356,7 +502,12 @@ export default function HomePage() {
                   {/* Filter controls */}
                   <div className="mb-4 flex flex-wrap gap-4 p-3 bg-gray-50 rounded-lg">
                     <div className="w-full md:w-auto flex-grow md:flex-grow-0">
-                      <select className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+                      <label htmlFor="disability-filter" className="sr-only">Filter by disability type</label>
+                      <select 
+                        id="disability-filter"
+                        className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                        aria-label="Filter by disability type"
+                      >
                         <option value="all">All Disability Types</option>
                         <option value="physical">Physical</option>
                         <option value="visual">Visual</option>
@@ -364,21 +515,30 @@ export default function HomePage() {
                       </select>
                     </div>
                     <div className="w-full md:w-auto flex-grow">
+                      <label htmlFor="name-search" className="sr-only">Search by name</label>
                       <input 
+                        id="name-search"
                         type="text" 
                         placeholder="Search by name..."
                         className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                        aria-label="Search by name"
                       />
                     </div>
                     <div className="w-full md:w-auto">
-                      <button className="w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-300 text-sm font-medium">
+                      <button 
+                        className="w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-300 text-sm font-medium"
+                        aria-label="Apply filters"
+                      >
                         Filter
                       </button>
                     </div>
                   </div>
                 
                   {/* Map container */}
-                  <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
+                  <div 
+                    className="h-96 rounded-lg overflow-hidden border border-gray-200"
+                    aria-label="Interactive map showing locations of adults with disabilities"
+                  >
                     {isLoading ? (
                       <LoadingIndicator />
                     ) : (
@@ -387,18 +547,18 @@ export default function HomePage() {
                   </div>
                   
                   {/* Legend */}
-                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm p-3 bg-gray-50 rounded-lg">
+                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm p-3 bg-gray-50 rounded-lg" aria-label="Map legend">
                     <div className="font-medium text-gray-700">Map Legend:</div>
                     <div className="flex items-center">
-                      <span className="w-3 h-3 rounded-full bg-blue-500 inline-block mr-2"></span>
+                      <span className="w-3 h-3 rounded-full bg-blue-500 inline-block mr-2" aria-hidden="true"></span>
                       <span>Physical</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="w-3 h-3 rounded-full bg-green-500 inline-block mr-2"></span>
+                      <span className="w-3 h-3 rounded-full bg-green-500 inline-block mr-2" aria-hidden="true"></span>
                       <span>Visual</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block mr-2"></span>
+                      <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block mr-2" aria-hidden="true"></span>
                       <span>Hearing</span>
                     </div>
                   </div>
@@ -417,8 +577,11 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="mt-4 md:mt-0">
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center">
-                      <UserPlusIcon className="h-4 w-4 mr-2" />
+                    <button 
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center"
+                      aria-label="Register a new child"
+                    >
+                      <UserPlusIcon className="h-4 w-4 mr-2" aria-hidden="true" />
                       Register Child
                     </button>
                   </div>
@@ -426,7 +589,10 @@ export default function HomePage() {
                 
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="md:col-span-2">
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 h-96">
+                    <div 
+                      className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 h-96"
+                      aria-label="Interactive map showing locations of children with disabilities"
+                    >
                       {isLoading ? (
                         <LoadingIndicator />
                       ) : (
@@ -443,65 +609,10 @@ export default function HomePage() {
                   
                   <div>
                     {selectedChild ? (
-                      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full">
-                        <div className="flex items-center mb-4">
-                          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 mr-4">
-                            {selectedChild.imageUrl ? (
-                              <img
-                                src={selectedChild.imageUrl}
-                                alt={selectedChild.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
-                                <UsersIcon className="h-8 w-8" />
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-800">{selectedChild.name}</h3>
-                            <p className="text-sm text-gray-500">ID: #{selectedChild.id}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4 mt-6">
-                          <div className="flex border-b border-gray-100 pb-2">
-                            <span className="w-1/3 text-gray-500 text-sm">Age</span>
-                            <span className="w-2/3 font-medium">{selectedChild.age} years</span>
-                          </div>
-                          <div className="flex border-b border-gray-100 pb-2">
-                            <span className="w-1/3 text-gray-500 text-sm">Disability</span>
-                            <span className="w-2/3 font-medium">{selectedChild.disability}</span>
-                          </div>
-                          <div className="flex border-b border-gray-100 pb-2">
-                            <span className="w-1/3 text-gray-500 text-sm">Address</span>
-                            <span className="w-2/3 font-medium">{selectedChild.address}</span>
-                          </div>
-                          <div className="flex pb-2">
-                            <span className="w-1/3 text-gray-500 text-sm">Coordinates</span>
-                            <span className="w-2/3 font-medium text-gray-700">
-                              {selectedChild.lat.toFixed(4)}, {selectedChild.lng.toFixed(4)}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-6 flex space-x-3">
-                          <Link 
-                            href={`/children/${selectedChild.id}`}
-                            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-center text-sm font-medium hover:bg-blue-700 transition duration-300"
-                          >
-                            View Full Profile
-                          </Link>
-                          <button className="bg-gray-100 text-gray-700 p-2 rounded-md hover:bg-gray-200 transition duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
+                      <ChildProfileCard child={selectedChild} onClose={clearSelectedChild} />
                     ) : (
                       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full flex flex-col items-center justify-center text-center">
-                        <MapPinIcon className="h-12 w-12 text-gray-300 mb-4" />
+                        <MapPinIcon className="h-12 w-12 text-gray-300 mb-4" aria-hidden="true" />
                         <h3 className="text-lg font-medium text-gray-700">No Child Selected</h3>
                         <p className="text-sm text-gray-500 mt-2 max-w-xs">
                           Click on a marker on the map to view detailed information about a child.
@@ -527,70 +638,149 @@ export default function HomePage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-              <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                <UsersIcon className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="text-blue-600 text-4xl font-bold mb-3">15+</div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">Communities Mapped</h3>
-              <p className="text-gray-600 text-sm">Comprehensive mapping across diverse neighborhoods to ensure inclusive representation.</p>
-            </div>
+            <StatisticCard 
+              color="green"
+              icon={MapPinIcon}
+              value="500+"
+              title="Persons Registered"
+              description="Individuals with various disabilities mapped and registered for better support services."
+            />
             
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-              <div className="absolute top-0 left-0 w-full h-1 bg-green-600"></div>
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                <UserPlusIcon className="h-8 w-8 text-green-600" />
+            <StatisticCard 
+              color="purple"
+              icon={PieChartIcon}
+              value="25%"
+              title="Resource Optimization"
+              description="Improved resource allocation efficiency through data-driven decision making."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="bg-blue-600 rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden">
+            <div className="absolute right-0 top-0 h-full w-1/3 bg-blue-500 opacity-50 transform skew-x-12 -mr-32" aria-hidden="true"></div>
+            <div className="relative z-10 md:flex items-center justify-between">
+              <div className="md:w-2/3 mb-8 md:mb-0">
+                <h2 className="text-3xl font-bold text-white mb-4">Join Our Initiative</h2>
+                <p className="text-blue-100 text-lg max-w-xl">
+                  Help us create a more inclusive society by contributing to our disability mapping project. 
+                  Register yourself or someone you know, or volunteer to support our data collection efforts.
+                </p>
               </div>
-              <div className="text-green-600 text-4xl font-bold mb-3">300+</div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">Individuals Registered</h3>
-              <p className="text-gray-600 text-sm">Growing database of persons with disabilities, providing valuable demographic insights.</p>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-              <div className="absolute top-0 left-0 w-full h-1 bg-purple-600"></div>
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                <BarChart3Icon className="h-8 w-8 text-purple-600" />
+              <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:space-x-4">
+                <Link 
+                  href="/register"
+                  className="bg-white text-blue-600 px-8 py-3 rounded-lg shadow-md font-medium text-center hover:bg-blue-50 transition duration-300"
+                >
+                  Register
+                </Link>
+                <Link 
+                  href="/volunteer"
+                  className="bg-transparent text-white border-2 border-white px-8 py-3 rounded-lg font-medium text-center hover:bg-white hover:bg-opacity-10 transition duration-300"
+                >
+                  Volunteer
+                </Link>
               </div>
-              <div className="text-purple-600 text-4xl font-bold mb-3">85%</div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">Resources Optimized</h3>
-              <p className="text-gray-600 text-sm">Better allocation of support services and resources based on data-driven insights.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-blue-700 text-white py-16 relative overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-10">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="absolute bottom-0">
-            <path fill="#ffffff" fillOpacity="1" d="M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,197.3C672,224,768,224,864,202.7C960,181,1056,139,1152,117.3C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
-        
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4">Join Our Initiative</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Help us build a more inclusive community by contributing to our mapping project or supporting our mission.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/register"
-              className="bg-white hover:bg-gray-100 text-blue-700 font-medium py-3 px-8 rounded-md shadow-md transition duration-300 flex items-center"
-            >
-              <UserPlusIcon className="h-5 w-5 mr-2" />
-              Register a Person
-            </Link>
-            <Link
-              href="/volunteer"
-              className="bg-blue-600 hover:bg-blue-800 text-white border border-blue-500 font-medium py-3 px-8 rounded-md shadow-md transition duration-300 flex items-center"
-            >
-              <HandIcon className="h-5 w-5 mr-2" />
-              Volunteer
-            </Link>
+      {/* Testimonials or Partners Section */}
+      <section className="bg-gray-50 py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Partners</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              We collaborate with various organizations, government agencies, and community groups to make our mapping initiative more effective and impactful.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {/* Partner logos - in a real app these would be actual partner logos */}
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="flex items-center justify-center p-6 bg-white rounded-lg shadow-sm h-24">
+                <div 
+                  className="bg-gray-200 w-full h-12 rounded flex items-center justify-center"
+                  aria-label={`Partner organization ${item}`}
+                >
+                  <span className="text-gray-400 font-medium">Partner Logo</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Disability Mapping Initiative</h3>
+              <p className="text-gray-400 mb-6">
+                Creating a more inclusive society through data-driven insights and community engagement.
+              </p>
+              <div className="flex space-x-4">
+                {/* Social media icons */}
+                <a href="#" className="text-gray-400 hover:text-white transition duration-300" aria-label="Facebook">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+                  </svg>
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition duration-300" aria-label="Twitter">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition duration-300" aria-label="Instagram">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><Link href="/" className="text-gray-400 hover:text-white transition duration-300">Home</Link></li>
+                <li><Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About Us</Link></li>
+                <li><Link href="/map" className="text-gray-400 hover:text-white transition duration-300">Interactive Map</Link></li>
+                <li><Link href="/statistics" className="text-gray-400 hover:text-white transition duration-300">Statistics</Link></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white transition duration-300">Contact</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2">
+                <li><Link href="/resources" className="text-gray-400 hover:text-white transition duration-300">Disability Support</Link></li>
+                <li><Link href="/resources/laws" className="text-gray-400 hover:text-white transition duration-300">Laws & Regulations</Link></li>
+                <li><Link href="/resources/education" className="text-gray-400 hover:text-white transition duration-300">Educational Materials</Link></li>
+                <li><Link href="/faq" className="text-gray-400 hover:text-white transition duration-300">FAQs</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+              <address className="not-italic text-gray-400">
+                <p className="mb-2">123 Main Street</p>
+                <p className="mb-2">Manila, Philippines</p>
+                <p className="mb-4">info@disabilitymapping.org</p>
+                <p>+63 123 456 7890</p>
+              </address>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 text-sm">
+            <p>&copy; {new Date().getFullYear()} Disability Mapping Initiative. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

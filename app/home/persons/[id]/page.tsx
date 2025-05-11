@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import  db  from "@/app/db/db";
-import { person, personImage } from "@/app/db/schema";
+import { person} from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { ArrowLeft, MapPin, Calendar, Briefcase, IdCard } from "lucide-react";
 

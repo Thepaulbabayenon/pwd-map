@@ -152,7 +152,7 @@ const PersonForm: React.FC<PersonFormProps> = ({ initialCoordinates }) => {
           <UserIcon className="mr-2 h-6 w-6 text-blue-600" />
           Add New Person
         </h2>
-        <p className="text-gray-600 mt-1">Enter the person's details and upload images</p>
+        <p className="text-gray-600 mt-1">Enter the person&aposs details and upload images</p>
       </div>
 
       {error && (
