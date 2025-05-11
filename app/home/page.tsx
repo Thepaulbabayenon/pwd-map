@@ -747,7 +747,7 @@ export default function HomePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2">
-                <li><Link href="/" className="text-gray-400 hover:text-white transition duration-300">Home</Link></li>
+                <li><Link href="/home" className="text-gray-400 hover:text-white transition duration-300">Home</Link></li>
                 <li><Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About Us</Link></li>
                 <li><Link href="/map" className="text-gray-400 hover:text-white transition duration-300">Interactive Map</Link></li>
                 <li><Link href="/statistics" className="text-gray-400 hover:text-white transition duration-300">Statistics</Link></li>
@@ -768,10 +768,10 @@ export default function HomePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
               <address className="not-italic text-gray-400">
-                <p className="mb-2">123 Main Street</p>
-                <p className="mb-2">Manila, Philippines</p>
-                <p className="mb-4">info@disabilitymapping.org</p>
-                <p>+63 123 456 7890</p>
+                <p className="mb-2">guimbal</p>
+                <p className="mb-2">Guimbal, Philippines</p>
+                <p className="mb-4">info@guimbalpwd-map.org</p>
+                <p>+63 9458491489</p>
               </address>
             </div>
           </div>

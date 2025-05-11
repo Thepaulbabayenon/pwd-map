@@ -16,19 +16,6 @@ interface ImageUploaderProps {
   initialDescription?: string; // Optional initial description
 }
 
-// Define type for API response
-interface AuthResponse {
-  signature: string;
-  token: string;
-  expire: number;
-  publicKey: string;
-}
-
-interface UploadResponse {
-  url: string;
-  fileId: string;
-}
-
 const ImageUploader: React.FC<ImageUploaderProps> = ({ 
   onImageUpload, 
   imageUrl: initialImageUrl, 
@@ -119,44 +106,23 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setError(null);
 
     try {
-      // Fetch authentication parameters from your backend
-      const authResponse = await fetch('/api/imagekit');
-      
-      if (!authResponse.ok) {
-        throw new Error(`Authentication failed: ${authResponse.statusText}`);
-      }
-      
-      const authData: AuthResponse = await authResponse.json();
-      console.log('Auth data received:', authData);
-
-      // Prepare the upload form data
+      // Create a FormData object for the file upload
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
-      formData.append('publicKey', authData.publicKey);
-      formData.append('signature', authData.signature);
-      formData.append('token', authData.token);
-      formData.append('expire', authData.expire.toString());
-      formData.append('fileName', `map_image_${Date.now()}`);
+      formData.append('description', description.trim() || 'No description provided');
       
-      // Add debugging - log formData content
-      console.log('Uploading with public key:', authData.publicKey);
-      console.log('Token:', authData.token);
-      console.log('Signature:', authData.signature);
-      console.log('Expire:', authData.expire);
-
-      // Upload to ImageKit
-      const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+      // Upload to our Next.js API endpoint instead of directly to ImageKit
+      const uploadResponse = await fetch('/api/imagekit', {
         method: 'POST',
         body: formData,
       });
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('Upload error response:', errorText);
-        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.error || 'Failed to upload image');
       }
 
-      const uploadResult: UploadResponse = await uploadResponse.json();
+      const uploadResult = await uploadResponse.json();
       console.log('Upload successful:', uploadResult);
 
       // Update onChange if provided
@@ -167,7 +133,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       // Call the onImageUpload callback with the image URL and description
       onImageUpload({
         imageUrl: uploadResult.url,
-        fileId: uploadResult.fileId,
+        fileId: uploadResult.fileId || '',
         description: description.trim() || 'No description provided'
       });
 
@@ -178,10 +144,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }, 2000);
     } catch (err) {
       console.error('Error uploading image:', err);
-      setError('Failed to upload image. Please try again.');
+      setError(typeof err === 'object' && err !== null && 'message' in err 
+        ? (err as Error).message 
+        : 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
-      console.log('Upload complete, component should still be visible');
     }
   };
 
