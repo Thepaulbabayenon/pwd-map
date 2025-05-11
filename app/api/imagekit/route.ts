@@ -2,9 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ImageKit from 'imagekit';
 import { v4 as uuidv4 } from 'uuid';
-import db from '@/app/db/db'; // Import your database connection
-import { personImage } from '@/app/db/schema'; // Import the schema
-import { sql } from 'drizzle-orm'; // Import sql tag for queries
+import db from '@/app/db/db';
+import { personImage } from '@/app/db/schema';
+import { sql } from 'drizzle-orm'; // Import sql properly at the top
 
 export async function POST(req: NextRequest) {
   try {
@@ -114,9 +114,6 @@ export async function POST(req: NextRequest) {
         
         // If we couldn't get the ID from the insert result, try to find it
         if (!imageId) {
-          // Import the SQL tag if needed
-          const { sql } = require('drizzle-orm');
-          
           // Try to find the recently inserted record
           const recentImage = await db.select()
             .from(personImage)
@@ -140,7 +137,7 @@ export async function POST(req: NextRequest) {
           imageId: imageId,
           message: 'File uploaded and saved to database with person reference'
         });
-      } catch (dbError) {
+      } catch (dbError: unknown) {
         console.error('Database error details:', dbError);
         
         // Even though DB save failed, the image was uploaded, so we return partial success
@@ -161,13 +158,14 @@ export async function POST(req: NextRequest) {
       message: 'File uploaded successfully without person reference'
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // More detailed error logging
     console.error('Error in upload API route:', error);
     
     // Check if it's an ImageKit specific error
-    const errorMessage = error.message || 'Unknown error';
-    const errorDetails = error.help || error.details || '';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = error instanceof Error && 'help' in error ? 
+      (error as { help?: string }).help || (error as { details?: string }).details || '' : '';
     
     return NextResponse.json(
       { 
