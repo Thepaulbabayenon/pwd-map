@@ -1,7 +1,5 @@
 import {db} from "@/app/db/db";
-import { Suspense } from 'react';
 import { PersonMapData } from '@/lib/types';
-import ClientMapWrapper from '@/components/Map/ClientMapWrapper';
 import { MapPinIcon, BarChart3Icon, Users2Icon, ImageIcon, InfoIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import Link from 'next/link';
