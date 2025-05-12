@@ -48,22 +48,6 @@ async function getPersonsDataForMap(): Promise<PersonMapData[]> {
   }
 }
 
-// Loading component with skeleton UI
-function MapLoading() {
-  return (
-    <div className="w-full h-[70vh] bg-gray-50 rounded-lg flex flex-col items-center justify-center">
-      <div className="flex flex-col items-center space-y-6">
-        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center animate-pulse">
-          <MapPinIcon className="w-8 h-8 text-gray-400" />
-        </div>
-        <div className="space-y-3">
-          <div className="w-48 h-4 bg-gray-200 rounded-full animate-pulse"></div>
-          <div className="w-32 h-3 bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Empty state component
 function EmptyState() {
