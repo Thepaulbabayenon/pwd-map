@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import { z } from "zod";
-import ImageUpload from "@/components/ImageUpload";
+import ImageUploader from "@/components/ImageUpload"; // Make sure the import matches the actual file name
 
 // Define the form validation schema based on the database schema
 const personSchema = z.object({
@@ -125,6 +125,14 @@ export default function EditPersonPage() {
     setFormData(prev => ({
       ...prev,
       imageUrl: value,
+    }));
+  };
+
+  // Handle successful image upload
+  const handleImageUpload = (imageData: { imageUrl: string; publicId?: string; description: string; imageId?: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: imageData.imageUrl,
     }));
   };
 
@@ -585,17 +593,16 @@ export default function EditPersonPage() {
             </div>
           </div>
           
-          {/* Image Upload Section - Using Cloudinary */}
+          {/* Image Upload Section - Using ImageUploader component */}
           <div>
             <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Upload Photo</h2>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Person Photo
-              </label>
-              <ImageUpload 
-                imageUrl={formData.imageUrl || ""} 
-                onChange={handleImageChange} 
-                onImageUpload={(imageData: { imageUrl: string; fileId: string; description: string; }) => handleImageChange(imageData.imageUrl)}
+              <ImageUploader 
+                imageUrl={formData.imageUrl} 
+                onChange={handleImageChange}
+                onImageUpload={handleImageUpload}
+                idNumber={formData.idNumber}
+                initialDescription={`Photo of ${formData.name}`}
               />
             </div>
           </div>

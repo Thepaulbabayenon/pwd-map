@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/app/db/db";
+import {db} from "@/app/db/db";
 import { personImage } from "@/app/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { writeFile } from "fs/promises";

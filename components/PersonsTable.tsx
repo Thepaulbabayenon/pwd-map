@@ -1,9 +1,11 @@
+'use client';
 import Link from "next/link";
 import { UserRound } from "lucide-react";
 import { Plus } from "lucide-react";
-import db from "@/app/db/db";
+import {db} from "@/app/db/db";
 import { person as personTable, personImage } from "@/app/db/schema";
 import { desc, asc, sql, and, like, or, eq } from "drizzle-orm";
+import { useState, useEffect } from "react";
 
 // Define search params interface
 interface SearchParams {
@@ -106,6 +108,7 @@ export async function PersonsTable({ searchParams }: { searchParams: SearchParam
   .offset(offset)
   .execute();
   
+  // Empty state
   if (persons.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8 text-center">
@@ -131,6 +134,21 @@ export async function PersonsTable({ searchParams }: { searchParams: SearchParam
     );
   }
   
+  // Client-side formatter component to avoid hydration mismatch
+  function ClientSideDateFormatter({ date }: { date: Date | null }) {
+    const [formattedDate, setFormattedDate] = useState<string>("—");
+    
+    useEffect(() => {
+      if (date) {
+        setFormattedDate(new Date(date).toLocaleDateString());
+      }
+    }, [date]);
+    
+    // Initial server render shows a placeholder
+    // Client will update it after hydration
+    return <>{formattedDate}</>;
+  }
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border">
@@ -183,7 +201,7 @@ export async function PersonsTable({ searchParams }: { searchParams: SearchParam
                           )}
                           {person.imageCount > 0 && (
                             <span className="absolute bottom-0 right-0 inline-flex items-center justify-center h-4 w-4 rounded-full bg-blue-400 text-xs text-white">
-                              {person.imageCount.toString()}
+                              {person.imageCount}
                             </span>
                           )}
                         </div>
@@ -223,9 +241,7 @@ export async function PersonsTable({ searchParams }: { searchParams: SearchParam
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {person.createdAt 
-                        ? new Date(person.createdAt).toLocaleDateString() 
-                        : "—"}
+                      <ClientSideDateFormatter date={person.createdAt} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
@@ -284,7 +300,7 @@ export async function PersonsTable({ searchParams }: { searchParams: SearchParam
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {pageNum.toString()}
+                  {pageNum}
                 </Link>
               );
             })}

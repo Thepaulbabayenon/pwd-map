@@ -1,4 +1,4 @@
-import db from '@/app/db/db';
+import {db} from "@/app/db/db";
 import { Suspense } from 'react';
 import { PersonMapData } from '@/lib/types';
 import ClientMapWrapper from '@/components/Map/ClientMapWrapper';

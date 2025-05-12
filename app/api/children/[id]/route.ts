@@ -1,6 +1,6 @@
 // File: src/app/api/children/[id]/route.ts
 import { NextResponse } from 'next/server';
-import db from '@/app/db/db';
+import {db} from '@/app/db/db';
 import { person } from '@/app/db/schema';
 import { eq } from 'drizzle-orm';
 

@@ -657,64 +657,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="bg-blue-600 rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden">
-            <div className="absolute right-0 top-0 h-full w-1/3 bg-blue-500 opacity-50 transform skew-x-12 -mr-32" aria-hidden="true"></div>
-            <div className="relative z-10 md:flex items-center justify-between">
-              <div className="md:w-2/3 mb-8 md:mb-0">
-                <h2 className="text-3xl font-bold text-white mb-4">Join Our Initiative</h2>
-                <p className="text-blue-100 text-lg max-w-xl">
-                  Help us create a more inclusive society by contributing to our disability mapping project. 
-                  Register yourself or someone you know, or volunteer to support our data collection efforts.
-                </p>
-              </div>
-              <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:space-x-4">
-                <Link 
-                  href="/register"
-                  className="bg-white text-blue-600 px-8 py-3 rounded-lg shadow-md font-medium text-center hover:bg-blue-50 transition duration-300"
-                >
-                  Register
-                </Link>
-                <Link 
-                  href="/volunteer"
-                  className="bg-transparent text-white border-2 border-white px-8 py-3 rounded-lg font-medium text-center hover:bg-white hover:bg-opacity-10 transition duration-300"
-                >
-                  Volunteer
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials or Partners Section */}
-      <section className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Partners</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              We collaborate with various organizations, government agencies, and community groups to make our mapping initiative more effective and impactful.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {/* Partner logos - in a real app these would be actual partner logos */}
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="flex items-center justify-center p-6 bg-white rounded-lg shadow-sm h-24">
-                <div 
-                  className="bg-gray-200 w-full h-12 rounded flex items-center justify-center"
-                  aria-label={`Partner organization ${item}`}
-                >
-                  <span className="text-gray-400 font-medium">Partner Logo</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4">

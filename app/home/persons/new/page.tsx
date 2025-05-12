@@ -27,7 +27,7 @@ const personSchema = z.object({
   employment: z.string().optional(),
   imageUrl: z.string().optional(), // Add imageUrl field
   imageDescription: z.string().optional(), // Add imageDescription field
-  imageFileId: z.string().optional(), // Add imageFileId field
+  publicId: z.string().optional(), // Changed from imageFileId to publicId to match ImageUploader
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -53,7 +53,7 @@ export default function NewPersonPage() {
     employment: "",
     imageUrl: "", // Initialize imageUrl
     imageDescription: "", // Initialize imageDescription
-    imageFileId: "", // Initialize imageFileId
+    publicId: "", // Changed from imageFileId to publicId to match ImageUploader
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -80,15 +80,17 @@ export default function NewPersonPage() {
   };
 
   // Handle image upload from the ImageUploader component
+  // Updated to match the expected parameter structure from ImageUploader
   const handleImageUpload = (imageData: {
     imageUrl: string;
-    fileId: string;
+    publicId?: string;
     description: string;
+    imageId?: number;
   }) => {
     setFormData(prev => ({
       ...prev,
       imageUrl: imageData.imageUrl,
-      imageFileId: imageData.fileId,
+      publicId: imageData.publicId || "",
       imageDescription: imageData.description,
     }));
   };
@@ -521,6 +523,8 @@ export default function NewPersonPage() {
                 imageUrl={formData.imageUrl}
                 onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value }))}
                 initialDescription={formData.imageDescription || ''}
+                idNumber={formData.idNumber}
+                apiEndpoint="/api/upload"
               />
             </div>
           </div>
