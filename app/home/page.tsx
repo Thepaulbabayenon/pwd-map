@@ -329,8 +329,6 @@ export default function HomePage() {
           {/* Tabs for different views */}
           <div className="flex border-b border-gray-200" role="tablist">
             <TabButton name="summary" label="Overview" activeTab={activeTab} onClick={setActiveTab} />
-            <TabButton name="map" label="Adults Map" activeTab={activeTab} onClick={setActiveTab} />
-            <TabButton name="children" label="Children Map" activeTab={activeTab} onClick={setActiveTab} />
           </div>
 
           {/* Content based on active tab */}
@@ -446,21 +444,7 @@ export default function HomePage() {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-blue-50 rounded-lg p-4 text-center">
-                          <p className="text-2xl font-bold text-blue-600">{persons.length + children.length}</p>
-                          <p className="text-xs text-gray-600 mt-1">Total Registered</p>
-                        </div>
-                        <div className="bg-green-50 rounded-lg p-4 text-center">
-                          <p className="text-2xl font-bold text-green-600">{persons.length}</p>
-                          <p className="text-xs text-gray-600 mt-1">Adults</p>
-                        </div>
-                        <div className="bg-yellow-50 rounded-lg p-4 text-center">
-                          <p className="text-2xl font-bold text-yellow-600">{children.length}</p>
-                          <p className="text-xs text-gray-600 mt-1">Children</p>
-                        </div>
-                      </div>
+                    
                       
                       <div className="mt-6 flex justify-center">
                         <button 
