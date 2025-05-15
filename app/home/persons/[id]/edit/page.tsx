@@ -10,23 +10,23 @@ import MediaUploader from "@/components/ImageUpload";
 // Define the form validation schema based on the database schema
 const personSchema = z.object({
   idNumber: z.string().min(1, "ID Number is required"),
-  doi: z.string().optional(),
+  doi: z.string().optional().nullable().transform(val => val || ""),
   name: z.string().min(1, "Full name is required"),
   firstName: z.string().min(1, "First name is required"),
-  middleName: z.string().optional(),
+  middleName: z.string().optional().nullable().transform(val => val || ""),
   lastName: z.string().min(1, "Last name is required"),
   address: z.string().min(1, "Address is required"),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
   dob: z.string().min(1, "Date of birth is required"),
-  age: z.string().optional(),
+  age: z.string().optional().nullable().transform(val => val || ""),
   gender: z.string().min(1, "Gender is required"),
-  disabilityType: z.string().optional(),
-  specificDisability: z.string().optional(),
-  idStatus: z.string().optional(),
-  employment: z.string().optional(),
-  imageUrl: z.string().optional(),
-  imageDescription: z.string().optional(), // Add this field to match what you're using in the form
+  disabilityType: z.string().optional().nullable().transform(val => val || ""),
+  specificDisability: z.string().optional().nullable().transform(val => val || ""),
+  idStatus: z.string().optional().nullable().transform(val => val || ""),
+  employment: z.string().optional().nullable().transform(val => val || ""),
+  imageUrl: z.string().optional().nullable().transform(val => val || ""),
+  imageDescription: z.string().optional().nullable().transform(val => val || ""), 
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -54,7 +54,7 @@ export default function EditPersonPage() {
     idStatus: "",
     employment: "",
     imageUrl: "",
-    imageDescription: "", // Initialize the new field
+    imageDescription: "",
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -87,7 +87,14 @@ export default function EditPersonPage() {
           dob: personData.dob ? new Date(personData.dob).toISOString().split('T')[0] : "",
           doi: personData.doi ? new Date(personData.doi).toISOString().split('T')[0] : "",
           age: personData.age?.toString() || "",
-          imageDescription: personData.imageDescription || "", // Handle the image description
+          // Ensure no null values in string fields
+          middleName: personData.middleName || "",
+          specificDisability: personData.specificDisability || "",
+          disabilityType: personData.disabilityType || "",
+          idStatus: personData.idStatus || "",
+          employment: personData.employment || "",
+          imageUrl: personData.imageUrl || "",
+          imageDescription: personData.imageDescription || "",
         };
         
         setFormData(formattedData);
@@ -104,38 +111,38 @@ export default function EditPersonPage() {
     }
   }, [personId]);
 
- // Modify your handleChange function to properly type-convert numeric fields
-const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-  const { name, value } = e.target;
-  
-  // Clear error when field is edited
-  if (errors[name]) {
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[name];
-      return newErrors;
-    });
-  }
-  
-  // Handle numeric conversions for latitude and longitude
-  if (name === 'latitude' || name === 'longitude') {
-    // Only convert to number if the value is not empty
-    const numValue = value === '' ? undefined : parseFloat(value);
+  // Properly handle changes to form fields
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: numValue,
-    }));
-  } else {
-    // Handle all other fields normally as strings
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-};
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
+    // Handle numeric conversions for latitude and longitude
+    if (name === 'latitude' || name === 'longitude') {
+      // Only convert to number if the value is not empty
+      const numValue = value === '' ? undefined : parseFloat(value);
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: numValue,
+      }));
+    } else {
+      // Handle all other fields normally as strings, ensure no null values
+      setFormData(prev => ({
+        ...prev,
+        [name]: value || "",
+      }));
+    }
+  };
+
   // Handle image upload from the MediaUploader component
-  // Fix the handleImageUpload function to match the expected parameter type
   const handleMediaUpload = (mediaData: { 
     mediaUrl: string; 
     publicId?: string; 
@@ -170,11 +177,14 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
     }
   };
 
-  // Handle form submission
+  // Handle form submission with better error handling
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Reset state before submission
     setIsSubmitting(true);
     setSubmitError("");
+    setErrors({});
 
     try {
       // Validate form data
@@ -190,7 +200,8 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update person record");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to update person record");
       }
 
       // Redirect to the person list
@@ -212,6 +223,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
         setSubmitError(error instanceof Error ? error.message : "An unknown error occurred");
       }
     } finally {
+      // Always reset isSubmitting, regardless of success or failure
       setIsSubmitting(false);
     }
   };
@@ -274,6 +286,9 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
     );
   }
 
+  // Check if there are any form errors that would prevent submission
+  const hasFormErrors = Object.keys(errors).length > 0;
+
   return (
     <div className="max-w-5xl mx-auto p-6">
       <div className="mb-8">
@@ -292,6 +307,12 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
         {submitError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6" role="alert">
             <p>{submitError}</p>
+          </div>
+        )}
+        
+        {hasFormErrors && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-6" role="alert">
+            <p>Please fix the errors highlighted below before submitting.</p>
           </div>
         )}
         
@@ -378,7 +399,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
                   type="text"
                   id="middleName"
                   name="middleName"
-                  value={formData.middleName}
+                  value={formData.middleName || ""} 
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
@@ -430,7 +451,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
                   type="number"
                   id="latitude"
                   name="latitude"
-                  value={formData.latitude || ""}
+                  value={formData.latitude ?? ""}
                   onChange={handleChange}
                   step="any"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -445,7 +466,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
                   type="number"
                   id="longitude"
                   name="longitude"
-                  value={formData.longitude || ""}
+                  value={formData.longitude ?? ""}
                   onChange={handleChange}
                   step="any"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -633,7 +654,11 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+              className={`flex items-center px-4 py-2 text-white rounded-md ${
+                isSubmitting 
+                  ? 'bg-blue-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             >
               {isSubmitting ? (
                 <>

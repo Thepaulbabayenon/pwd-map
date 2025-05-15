@@ -5,7 +5,7 @@ export default function Navbar() {
   return (
     <nav className="bg-blue-600 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href="/home" className="text-2xl font-bold">
+        <Link href="/home" className="text-2xl font-bold hover:text-blue-200">
           DisabilityMap
         </Link>
         <ul className="flex space-x-4">
