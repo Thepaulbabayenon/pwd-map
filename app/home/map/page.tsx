@@ -1,5 +1,5 @@
 import {db} from "@/app/db/db";
-import { PersonMapData } from '@/lib/types';
+import { PersonMapData, PersonMedia} from '@/lib/types';
 import { MapPinIcon, BarChart3Icon, Users2Icon, ImageIcon, InfoIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import Link from 'next/link';
@@ -23,11 +23,12 @@ async function getPersonsDataForMap(): Promise<PersonMapData[]> {
         longitude: true,
       },
       with: {
-        images: {
+        media: { // Ensure your Drizzle schema allows fetching mediaType
           columns: {
-            imageUrl: true,
+            mediaUrl: true,
+            mediaType: true, // <-- THIS MUST EXIST AND BE FETCHED
             description: true,
-          },
+          }
         },
       },
     });
@@ -40,7 +41,11 @@ async function getPersonsDataForMap(): Promise<PersonMapData[]> {
         id: Number(p.id),
         latitude: p.latitude as number,
         longitude: p.longitude as number,
-        images: p.images || [],
+         media: (p.media || []).map(m => ({ // Map to the new PersonMediaItem
+          mediaUrl: m.mediaUrl,
+          mediaType: m.mediaType as 'image' | 'video',
+          description: m.description || undefined,
+        })),
       })) as PersonMapData[];
   } catch (error) {
     console.error('Error fetching map data:', error);
@@ -97,7 +102,7 @@ export default async function MapPage() {
   // Calculate stats data
   const totalPersons = personsData.length;
   const uniqueDisabilityTypes = new Set(personsData.map(p => p.disabilityType)).size;
-  const totalImages = personsData.reduce((total, person) => total + (person.images?.length || 0), 0);
+  const totalMedia = personsData.reduce((total, person) => total + (person.media?.length || 0), 0);
   
   // Get disability distribution
   const disabilityDistribution = personsData.reduce((acc, person) => {
@@ -145,8 +150,8 @@ export default async function MapPage() {
           />
           <StatCard 
             icon={<ImageIcon className="w-6 h-6" />}
-            count={totalImages}
-            label="Total Images"
+            count={totalMedia}
+            label="Total Media Items"
             bgColor="bg-purple-50"
             textColor="text-purple-600"
           />

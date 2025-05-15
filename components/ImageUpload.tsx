@@ -2,99 +2,106 @@
 
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import Image from 'next/image';
-import {  Upload, X, CheckCircle, Camera, Trash2 } from 'lucide-react';
+import { Upload, X, CheckCircle, Camera, Trash2, Film } from 'lucide-react';
 
 // Define updated types for the component props
-interface ImageUploaderProps {
-  onImageUpload: (imageData: {
-    imageUrl: string;
+interface MediaUploaderProps {
+  onMediaUpload: (mediaData: {
+    mediaUrl: string;
     publicId?: string;
     description: string;
-    imageId?: number;
+    mediaId?: number;
+    mediaType: 'image' | 'video';
   }) => void;
-  imageUrl?: string; // Optional prop for initial image URL
-  onChange?: (value: string) => void; // Optional callback for when image changes
+  mediaUrl?: string; // Optional prop for initial media URL
+  onChange?: (value: string) => void; // Optional callback for when media changes
   initialDescription?: string; // Optional initial description
-  idNumber: string; // ID number is now required
-  apiEndpoint?: string; // Optional API endpoint for uploading (default: '/api/imagekit')
-  showExistingImages?: boolean; // Whether to show existing images
+  idNumber: string; // ID number is required
+  apiEndpoint?: string; // Optional API endpoint for uploading
+  showExistingMedia?: boolean; // Whether to show existing media
+  initialMediaType?: 'image' | 'video'; // Optional initial media type
+  maxAllowed?: number; // Maximum number of media items allowed
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ 
-  onImageUpload, 
-  imageUrl: initialImageUrl, 
+const MediaUploader: React.FC<MediaUploaderProps> = ({
+  onMediaUpload,
+  mediaUrl: initialMediaUrl,
   onChange,
   initialDescription = '',
   idNumber,
   apiEndpoint = '/api/upload',
-  showExistingImages = true
+  showExistingMedia = true,
+  initialMediaType = 'image',
+  maxAllowed = 4
 }) => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [preview, setPreview] = useState<string | null>(initialImageUrl || null);
+  const [preview, setPreview] = useState<string | null>(initialMediaUrl || null);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
   const [description, setDescription] = useState<string>(initialDescription);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>(initialMediaType);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [existingImages, setExistingImages] = useState<Array<{
+  const [existingMedia, setExistingMedia] = useState<Array<{
     id: number;
     url: string;
     description: string;
     createdAt: string;
+    mediaType: 'image' | 'video';
   }>>([]);
 
-  // Fetch existing images when component mounts or idNumber changes
+  // Fetch existing media when component mounts or idNumber changes
   useEffect(() => {
-    const fetchExistingImagesInternal = async () => {
-      if (idNumber && showExistingImages) {
+    const fetchExistingMediaInternal = async () => {
+      if (idNumber && showExistingMedia) {
         try {
           setLoading(true);
-          const response = await fetch(`/api/upload/image?idNumber=${idNumber}`);
+          const response = await fetch(`/api/upload/media?idNumber=${idNumber}`);
           if (!response.ok) {
-            throw new Error('Failed to fetch images');
+            throw new Error('Failed to fetch media');
           }
           const data = await response.json();
-          if (data.success && data.images) {
-            setExistingImages(data.images);
+          if (data.success && data.media) {
+            setExistingMedia(data.media);
           }
         } catch (err) {
-          console.error('Error fetching images:', err);
+          console.error('Error fetching media:', err);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    fetchExistingImagesInternal();
-  }, [idNumber, showExistingImages]);
+    fetchExistingMediaInternal();
+  }, [idNumber, showExistingMedia]);
 
-  // Moved fetchExistingImages inside the component to be used elsewhere
-  const fetchExistingImages = async () => {
+  // Moved fetchExistingMedia inside the component to be used elsewhere
+  const fetchExistingMedia = async () => {
     if (!idNumber) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/upload/image?idNumber=${idNumber}`);
+      const response = await fetch(`/api/upload/media?idNumber=${idNumber}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch images');
+        throw new Error('Failed to fetch media');
       }
       const data = await response.json();
-      if (data.success && data.images) {
-        setExistingImages(data.images);
+      if (data.success && data.media) {
+        setExistingMedia(data.media);
       }
     } catch (err) {
-      console.error('Error fetching images:', err);
+      console.error('Error fetching media:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Update preview if initialImageUrl changes
+  // Update preview if initialMediaUrl changes
   useEffect(() => {
-    if (initialImageUrl) {
-      setPreview(initialImageUrl);
+    if (initialMediaUrl) {
+      setPreview(initialMediaUrl);
     }
-  }, [initialImageUrl]);
+  }, [initialMediaUrl]);
 
   // Handle file selection
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -104,15 +111,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setError(null);
     setUploadSuccess(false);
 
+    // Determine media type
+    const isVideo = file.type.includes('video/');
+    const isImage = file.type.includes('image/');
+
     // Validate file type
-    if (!file.type.includes('image/')) {
-      setError('Please select an image file.');
+    if (!isVideo && !isImage) {
+      setError('Please select an image or video file.');
       return;
     }
 
-    // File size validation (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB.');
+    setMediaType(isVideo ? 'video' : 'image');
+
+    // File size validation (limit to 50MB for videos, 5MB for images)
+    const maxSize = isVideo ? 500 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError(`${isVideo ? 'Video' : 'Image'} size should be less than ${isVideo ? '50MB' : '5MB'}.`);
       return;
     }
 
@@ -135,7 +149,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   // Handle upload
   const handleUpload = async () => {
     if (!preview) {
-      setError('Please select an image to upload.');
+      setError('Please select a media file to upload.');
       return;
     }
 
@@ -144,21 +158,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       return;
     }
 
-    // Check if we've reached the maximum number of images
-    if (existingImages.length >= 4) {
-      setError('Maximum of 4 images allowed per ID. Please delete an image before uploading a new one.');
+    // Check if we've reached the maximum number of media items
+    if (existingMedia.length >= maxAllowed) {
+      setError(`Maximum of ${maxAllowed} media items allowed per ID. Please delete one before uploading a new one.`);
       return;
     }
 
-    // If preview is already a URL (not a data URL) and matches initialImageUrl,
-    // we can skip upload as the image is already uploaded
-    if (preview === initialImageUrl && !fileInputRef.current?.files?.[0]) {
+    // If preview is already a URL (not a data URL) and matches initialMediaUrl,
+    // we can skip upload as the media is already uploaded
+    if (preview === initialMediaUrl && !fileInputRef.current?.files?.[0]) {
       if (onChange) {
         onChange(preview);
       }
-      onImageUpload({
-        imageUrl: preview,
-        description: description.trim() || 'No description provided'
+      onMediaUpload({
+        mediaUrl: preview,
+        description: description.trim() || 'No description provided',
+        mediaType: mediaType
       });
       setUploadSuccess(true);
       setTimeout(() => {
@@ -181,6 +196,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       formData.append('file', fileInputRef.current.files[0]);
       formData.append('description', description.trim() || 'No description provided');
       formData.append('idNumber', idNumber);
+      formData.append('fileType', mediaType);
       
       // Upload to our Next.js API endpoint
       const uploadResponse = await fetch(apiEndpoint, {
@@ -190,7 +206,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Failed to upload image');
+        throw new Error(errorData.error || 'Failed to upload media');
       }
 
       const uploadResult = await uploadResponse.json();
@@ -201,12 +217,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onChange(uploadResult.url);
       }
 
-      // Call the onImageUpload callback with the image URL and description
-      onImageUpload({
-        imageUrl: uploadResult.url,
+      // Call the onMediaUpload callback with the media URL and description
+      onMediaUpload({
+        mediaUrl: uploadResult.url,
         publicId: uploadResult.publicId || '',
         description: description.trim() || 'No description provided',
-        imageId: uploadResult.imageId
+        mediaId: uploadResult.mediaId,
+        mediaType: uploadResult.mediaType || mediaType
       });
 
       // Reset the form
@@ -215,24 +232,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       setDescription('');
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-      // Fetch the updated list of images
-      fetchExistingImages();
+      // Fetch the updated list of media
+      fetchExistingMedia();
       
       setTimeout(() => {
         setUploadSuccess(false);
       }, 2000);
     } catch (err) {
-      console.error('Error uploading image:', err);
+      console.error('Error uploading media:', err);
       setError(typeof err === 'object' && err !== null && 'message' in err 
         ? (err as Error).message 
-        : 'Failed to upload image. Please try again.');
+        : 'Failed to upload media. Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
-  // Handle removing the image
-  const handleRemoveImage = () => {
+  // Handle removing the media
+  const handleRemoveMedia = () => {
     setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     
@@ -242,24 +259,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   };
 
-  // Handle deleting an existing image
-  const handleDeleteImage = async (imageId: number) => {
-    if (!confirm('Are you sure you want to delete this image?')) {
+  // Handle deleting an existing media item
+  const handleDeleteMedia = async (mediaId: number) => {
+    if (!confirm('Are you sure you want to delete this media item?')) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/upload/delete?imageId=${imageId}`, {
+      const response = await fetch(`/api/upload/delete?mediaId=${mediaId}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete image');
+        throw new Error(errorData.error || 'Failed to delete media');
       }
 
-      // Refresh the image list
-      fetchExistingImages();
+      // Refresh the media list
+      fetchExistingMedia();
       
       // Show success message
       setUploadSuccess(true);
@@ -267,31 +284,39 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         setUploadSuccess(false);
       }, 2000);
     } catch (err) {
-      console.error('Error deleting image:', err);
+      console.error('Error deleting media:', err);
       setError(typeof err === 'object' && err !== null && 'message' in err 
         ? (err as Error).message 
-        : 'Failed to delete image. Please try again.');
+        : 'Failed to delete media. Please try again.');
     }
   };
 
   const displayText = idNumber 
     ? `Uploading for ID: ${idNumber}`
-    : 'Add images to this profile';
+    : 'Add media to this profile';
 
-  return (
-    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-800">Upload Image</h3>
-        <p className="text-sm text-gray-500">{displayText}</p>
-        {existingImages.length > 0 && (
-          <p className="text-xs text-gray-400 mt-1">
-            {existingImages.length} of 4 images uploaded
-          </p>
-        )}
-      </div>
+  // Render preview based on media type
+  const renderPreview = () => {
+    if (!preview) return null;
 
-      {/* Image Preview */}
-      {preview ? (
+    if (mediaType === 'video') {
+      return (
+        <div className="relative mb-4 w-full h-48">
+          <video 
+            src={preview} 
+            controls 
+            className="w-full h-full object-contain rounded-md"
+          />
+          <button 
+            onClick={handleRemoveMedia}
+            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      );
+    } else {
+      return (
         <div className="relative mb-4 w-full h-48">
           <Image
             src={preview}
@@ -300,20 +325,104 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             className="object-contain rounded-md"
           />
           <button 
-            onClick={handleRemoveImage}
+            onClick={handleRemoveMedia}
             className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
           >
             <X size={16} />
           </button>
         </div>
+      );
+    }
+  };
+
+  // Render media grid item based on media type
+  const renderMediaItem = (item: {
+    id: number;
+    url: string;
+    description: string;
+    mediaType: 'image' | 'video';
+  }) => {
+    if (item.mediaType === 'video') {
+      return (
+        <div key={item.id} className="relative border border-gray-200 rounded-md overflow-hidden">
+          <div className="relative h-32">
+            <video
+              src={item.url}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-2 right-2 bg-blue-500 text-white p-1 rounded-full">
+              <Film size={12} />
+            </div>
+          </div>
+          <div className="p-2">
+            <p className="text-xs text-gray-600 truncate" title={item.description}>
+              {item.description}
+            </p>
+            <button
+              onClick={() => handleDeleteMedia(item.id)}
+              className="mt-2 flex items-center text-xs text-red-600 hover:text-red-800"
+            >
+              <Trash2 size={12} className="mr-1" />
+              Delete
+            </button>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div key={item.id} className="relative border border-gray-200 rounded-md overflow-hidden">
+          <div className="relative h-32">
+            <Image
+              src={item.url}
+              alt={item.description}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="p-2">
+            <p className="text-xs text-gray-600 truncate" title={item.description}>
+              {item.description}
+            </p>
+            <button
+              onClick={() => handleDeleteMedia(item.id)}
+              className="mt-2 flex items-center text-xs text-red-600 hover:text-red-800"
+            >
+              <Trash2 size={12} className="mr-1" />
+              Delete
+            </button>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="mb-4">
+        <h3 className="text-lg font-medium text-gray-800">Upload Media</h3>
+        <p className="text-sm text-gray-500">{displayText}</p>
+        {existingMedia.length > 0 && (
+          <p className="text-xs text-gray-400 mt-1">
+            {existingMedia.length} of {maxAllowed} media items uploaded
+          </p>
+        )}
+      </div>
+
+      {/* Media Preview */}
+      {preview ? (
+        renderPreview()
       ) : (
         <div 
           onClick={() => fileInputRef.current?.click()}
           className="w-full h-48 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors mb-4"
         >
-          <Camera size={48} className="text-gray-400 mb-2" />
-          <p className="text-sm text-gray-500 mb-1">Click to select an image</p>
-          <p className="text-xs text-gray-400">JPG, PNG, or GIF (max 5MB)</p>
+          <div className="flex gap-2">
+            <Camera size={36} className="text-gray-400" />
+            <Film size={36} className="text-gray-400" />
+          </div>
+          <p className="text-sm text-gray-500 mb-1 mt-2">Click to select media</p>
+          <p className="text-xs text-gray-400">Images: JPG, PNG, GIF (max 5MB)</p>
+          <p className="text-xs text-gray-400">Videos: MP4, MOV, WebM (max 500MB)</p>
         </div>
       )}
 
@@ -322,21 +431,21 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*"
+        accept="image/*,video/*"
         className="hidden"
       />
 
       {/* Description Input */}
       <div className="mb-4">
-        <label htmlFor="image-description" className="block text-sm font-medium text-gray-700 mb-1">
-          Image Description
+        <label htmlFor="media-description" className="block text-sm font-medium text-gray-700 mb-1">
+          Media Description
         </label>
         <textarea
-          id="image-description"
+          id="media-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Provide a brief description of this image..."
+          placeholder="Provide a brief description of this media..."
           rows={3}
         ></textarea>
       </div>
@@ -359,9 +468,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       {/* Upload Button */}
       <button
         onClick={handleUpload}
-        disabled={uploading || !preview || existingImages.length >= 4}
+        disabled={uploading || !preview || existingMedia.length >= maxAllowed}
         className={`w-full py-2 px-4 rounded-md text-white font-medium flex items-center justify-center ${
-          uploading || !preview || existingImages.length >= 4
+          uploading || !preview || existingMedia.length >= maxAllowed
             ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-blue-600 hover:bg-blue-700'
         }`}
@@ -377,15 +486,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         ) : (
           <>
             <Upload size={16} className="mr-2" />
-            Upload Image
+            Upload Media
           </>
         )}
       </button>
 
-      {/* Existing Images */}
-      {showExistingImages && (
+      {/* Existing Media */}
+      {showExistingMedia && (
         <div className="mt-6">
-          <h4 className="text-md font-medium text-gray-700 mb-2">Existing Images</h4>
+          <h4 className="text-md font-medium text-gray-700 mb-2">Existing Media</h4>
           
           {loading ? (
             <div className="flex justify-center py-4">
@@ -394,34 +503,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             </div>
-          ) : existingImages.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">No images uploaded yet</p>
+          ) : existingMedia.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">No media uploaded yet</p>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {existingImages.map((img) => (
-                <div key={img.id} className="relative border border-gray-200 rounded-md overflow-hidden">
-                  <div className="relative h-32">
-                    <Image
-                      src={img.url}
-                      alt={img.description}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="p-2">
-                    <p className="text-xs text-gray-600 truncate" title={img.description}>
-                      {img.description}
-                    </p>
-                    <button
-                      onClick={() => handleDeleteImage(img.id)}
-                      className="mt-2 flex items-center text-xs text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={12} className="mr-1" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {existingMedia.map((media) => renderMediaItem(media))}
             </div>
           )}
         </div>
@@ -430,4 +516,4 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   );
 };
 
-export default ImageUploader;
+export default MediaUploader;

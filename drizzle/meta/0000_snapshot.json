@@ -1,5 +1,5 @@
 {
-  "id": "1724348f-05d1-4fb2-a6fe-3e3d97427d4a",
+  "id": "9c288fca-b0b0-4006-bfdd-a7546a90f98e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -18,7 +18,7 @@
           "name": "id_number",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "doi": {
           "name": "doi",
@@ -30,13 +30,13 @@
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "first_name": {
           "name": "first_name",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "middle_name": {
           "name": "middle_name",
@@ -48,13 +48,13 @@
           "name": "last_name",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "address": {
           "name": "address",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "latitude": {
           "name": "latitude",
@@ -76,7 +76,7 @@
         },
         "age": {
           "name": "age",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
@@ -102,7 +102,7 @@
           "name": "id_status",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "employment": {
           "name": "employment",
@@ -141,8 +141,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.person_image": {
-      "name": "person_image",
+    "public.person_media": {
+      "name": "person_media",
       "schema": "",
       "columns": {
         "id": {
@@ -157,15 +157,35 @@
           "primaryKey": false,
           "notNull": true
         },
-        "image_url": {
-          "name": "image_url",
+        "media_url": {
+          "name": "media_url",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
+        "media_type": {
+          "name": "media_type",
+          "type": "media_types",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'image'"
+        },
         "description": {
           "name": "description",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_id": {
+          "name": "file_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
@@ -179,9 +199,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "person_image_person_id_person_id_fk": {
-          "name": "person_image_person_id_person_id_fk",
-          "tableFrom": "person_image",
+        "person_media_person_id_person_id_fk": {
+          "name": "person_media_person_id_person_id_fk",
+          "tableFrom": "person_media",
           "tableTo": "person",
           "columnsFrom": [
             "person_id"
@@ -430,6 +450,14 @@
     }
   },
   "enums": {
+    "public.media_types": {
+      "name": "media_types",
+      "schema": "public",
+      "values": [
+        "image",
+        "video"
+      ]
+    },
     "public.oauth_providers": {
       "name": "oauth_providers",
       "schema": "public",

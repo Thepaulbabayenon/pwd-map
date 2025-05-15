@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ImageKit from 'imagekit';
-import { db }from "@/app/db/db"; // Import your Drizzle database instance
-import { personImage, person } from '@/app/db/schema'; // Import your schema
+import { db } from "@/app/db/db"; // Import your Drizzle database instance
+import { personMedia, person } from '@/app/db/schema'; // Updated schema import
 import { eq } from 'drizzle-orm'; // For database queries
 
 export async function POST(req: NextRequest) {
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File;
   const idNumber = formData.get('idNumber') as string;
   const description = formData.get('description') as string || 'No description provided';
+  const fileType = formData.get('fileType') as string || 'image'; // Default to image if not specified
 
   if (!file) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -30,6 +31,14 @@ export async function POST(req: NextRequest) {
 
   if (!idNumber) {
     return NextResponse.json({ error: 'ID number is required' }, { status: 400 });
+  }
+
+  // Validate file type
+  const isVideo = file.type.includes('video/');
+  const isImage = file.type.includes('image/');
+  
+  if (!isVideo && !isImage) {
+    return NextResponse.json({ error: 'Only image or video files are allowed' }, { status: 400 });
   }
 
   try {
@@ -42,11 +51,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Person with this ID number not found' }, { status: 404 });
     }
 
-    // Check existing images count for this person
-    const existingImages = await db.select().from(personImage).where(eq(personImage.personId, personRecord.id));
+    // Check existing media count for this person
+    const existingMedia = await db.select().from(personMedia).where(eq(personMedia.personId, personRecord.id));
     
-    if (existingImages.length >= 4) {
-      return NextResponse.json({ error: 'Maximum of 4 images allowed per ID' }, { status: 400 });
+    if (existingMedia.length >= 4) {
+      return NextResponse.json({ error: 'Maximum of 4 media items allowed per ID' }, { status: 400 });
     }
 
     // Validate ImageKit configuration
@@ -58,29 +67,33 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     
     // Convert buffer to base64 string for ImageKit
-    const base64Image = buffer.toString('base64');
+    const base64File = buffer.toString('base64');
     
     // Upload to ImageKit with folder structure based on ID number
     const result = await imagekit.upload({
-      file: base64Image,
+      file: base64File,
       fileName: file.name,
       useUniqueFileName: true,
       folder: `people/${idNumber}`
     });
 
-    // Save image reference to database
-    const newImage = await db.insert(personImage).values({
+    // Save media reference to database
+    const newMedia = await db.insert(personMedia).values({
       personId: personRecord.id,
-      imageUrl: result.url,
-      description: description
+      mediaUrl: result.url,
+      description: description,
+      mediaType: isVideo ? 'video' : 'image',
+      fileId: result.fileId,
+      fileName: file.name
     }).returning();
 
     return NextResponse.json({ 
       success: true, 
       url: result.url,
       publicId: result.fileId,
-      imageId: newImage[0].id,
-      message: `Image uploaded successfully for ID: ${idNumber}. (${existingImages.length + 1} of 4)`
+      mediaId: newMedia[0].id,
+      mediaType: isVideo ? 'video' : 'image',
+      message: `${isVideo ? 'Video' : 'Image'} uploaded successfully for ID: ${idNumber}. (${existingMedia.length + 1} of 4)`
     });
   } catch (error) {
     const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';

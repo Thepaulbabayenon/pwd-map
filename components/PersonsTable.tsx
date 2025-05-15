@@ -31,7 +31,7 @@ interface Person {
 
 export async function PersonsTable({ searchParams }: { searchParams: SearchParams }) {
   const { search, sort, filter, page = "1" } = await searchParams;
-  const pageNumber = parseInt(page, 10) || 1;
+  const pageNumber = await parseInt(page, 10) || 1;
   const itemsPerPage = 10;
   const offset = (pageNumber - 1) * itemsPerPage;
   

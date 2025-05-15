@@ -1,33 +1,37 @@
+CREATE TYPE "public"."media_types" AS ENUM('image', 'video');--> statement-breakpoint
 CREATE TYPE "public"."oauth_providers" AS ENUM('discord', 'github', 'google');--> statement-breakpoint
 CREATE TYPE "public"."user_roles" AS ENUM('admin', 'user');--> statement-breakpoint
 CREATE TABLE "person" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"id_number" varchar(50) NOT NULL,
+	"id_number" varchar(50),
 	"doi" varchar,
-	"name" varchar(255) NOT NULL,
-	"first_name" varchar(100) NOT NULL,
+	"name" varchar(255),
+	"first_name" varchar(100),
 	"middle_name" varchar(100),
-	"last_name" varchar(100) NOT NULL,
-	"address" varchar(255) NOT NULL,
+	"last_name" varchar(100),
+	"address" varchar(255),
 	"latitude" double precision,
 	"longitude" double precision,
 	"dob" varchar,
-	"age" integer,
+	"age" varchar,
 	"gender" varchar(20),
 	"disability_type" varchar(100),
 	"specific_disability" varchar(150),
-	"id_status" varchar(50) NOT NULL,
+	"id_status" varchar(50),
 	"employment" varchar(100),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "person_id_number_unique" UNIQUE("id_number")
 );
 --> statement-breakpoint
-CREATE TABLE "person_image" (
+CREATE TABLE "person_media" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"person_id" integer NOT NULL,
-	"image_url" varchar(255) NOT NULL,
+	"media_url" varchar(255) NOT NULL,
+	"media_type" "media_types" DEFAULT 'image' NOT NULL,
 	"description" text,
+	"file_id" varchar(255),
+	"file_name" varchar(255),
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
@@ -67,5 +71,5 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "person_image" ADD CONSTRAINT "person_image_person_id_person_id_fk" FOREIGN KEY ("person_id") REFERENCES "public"."person"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "person_media" ADD CONSTRAINT "person_media_person_id_person_id_fk" FOREIGN KEY ("person_id") REFERENCES "public"."person"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;

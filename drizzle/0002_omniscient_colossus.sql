@@ -1,1 +1,0 @@
-ALTER TABLE "person" ALTER COLUMN "id_number" DROP NOT NULL;

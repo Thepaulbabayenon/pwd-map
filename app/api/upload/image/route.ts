@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       imageCount: images.length,
       images: images.map(img => ({
         id: img.id,
-        url: img.imageUrl,
+        url: img.mediaUrl,
         description: img.description,
         createdAt: img.createdAt
       }))

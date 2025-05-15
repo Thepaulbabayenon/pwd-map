@@ -33,7 +33,7 @@ export async function DELETE(req: NextRequest) {
     // Extract the file ID from the URL (assuming URL contains the file ID)
     // This depends on your imagekit setup, you might need to adjust this logic
     // For proper implementation, you should store the ImageKit fileId in your database
-    const url = new URL(image.imageUrl);
+    const url = new URL(image.mediaUrl);
     const pathParts = url.pathname.split('/');
     const fileId = pathParts[pathParts.length - 1];
 

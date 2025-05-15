@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import { z } from "zod";
-import ImageUploader from "@/components/ImageUpload"; 
+import MediaUploader from "@/components/ImageUpload"; 
 
 // Define the form validation schema based on the database schema
 const personSchema = z.object({
@@ -81,17 +81,18 @@ export default function NewPersonPage() {
 
   // Handle image upload from the ImageUploader component
   // Updated to match the expected parameter structure from ImageUploader
-  const handleImageUpload = (imageData: {
-    imageUrl: string;
+  const handleImageUpload = (mediaData: {
+    mediaUrl: string;
     publicId?: string;
     description: string;
-    imageId?: number;
+    mediaId?: number;
+    mediaType: "video" | "image";
   }) => {
     setFormData(prev => ({
       ...prev,
-      imageUrl: imageData.imageUrl,
-      publicId: imageData.publicId || "",
-      imageDescription: imageData.description,
+      imageUrl: mediaData.mediaUrl,
+      publicId: mediaData.publicId || "",
+      imageDescription: mediaData.description,
     }));
   };
 
@@ -518,14 +519,14 @@ export default function NewPersonPage() {
           <div>
             <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Upload Photo</h2>
             <div className="mb-6">
-              <ImageUploader
-                onImageUpload={handleImageUpload}
-                imageUrl={formData.imageUrl}
-                onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value }))}
-                initialDescription={formData.imageDescription || ''}
-                idNumber={formData.idNumber}
-                apiEndpoint="/api/upload"
-              />
+         <MediaUploader
+            onMediaUpload={handleImageUpload}
+            mediaUrl={formData.imageUrl}
+            onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value }))}
+            initialDescription={formData.imageDescription || ''}
+            idNumber={formData.idNumber}
+            apiEndpoint="/api/upload"
+          />
             </div>
           </div>
           

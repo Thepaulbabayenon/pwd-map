@@ -1,4 +1,13 @@
 // File: src/lib/types.ts
+export interface PersonMedia {
+  id: number;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  description?: string | null;
+  fileId?: string | null;
+  fileName?: string | null;
+}
+
 export interface Child {
   id: number;
   name: string;
@@ -10,10 +19,10 @@ export interface Child {
   address: string;
 }
   
-  export interface CloudinaryUploadResult {
-    secure_url: string;
-    public_id: string;
-  }
+export interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+}
 
 // src/types/map.ts
 export interface PersonImage {
@@ -30,4 +39,5 @@ export interface PersonMapData {
   disabilityType: string;
   specificDisability?: string;
   images?: PersonImage[];
+  media: PersonMedia[];
 }

@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1746816757647,
-      "tag": "0000_cynical_nuke",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746816889445,
-      "tag": "0001_medical_meteorite",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1746817356997,
-      "tag": "0002_omniscient_colossus",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1746817404229,
-      "tag": "0003_pink_gressill",
+      "when": 1747199764141,
+      "tag": "0000_stiff_hairball",
       "breakpoints": true
     }
   ]

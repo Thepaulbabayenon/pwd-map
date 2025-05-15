@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import { z } from "zod";
-import ImageUploader from "@/components/ImageUpload"; // Make sure the import matches the actual file name
+import MediaUploader from "@/components/ImageUpload";
 
 // Define the form validation schema based on the database schema
 const personSchema = z.object({
@@ -26,6 +26,7 @@ const personSchema = z.object({
   idStatus: z.string().optional(),
   employment: z.string().optional(),
   imageUrl: z.string().optional(),
+  imageDescription: z.string().optional(), // Add this field to match what you're using in the form
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -53,6 +54,7 @@ export default function EditPersonPage() {
     idStatus: "",
     employment: "",
     imageUrl: "",
+    imageDescription: "", // Initialize the new field
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,6 +87,7 @@ export default function EditPersonPage() {
           dob: personData.dob ? new Date(personData.dob).toISOString().split('T')[0] : "",
           doi: personData.doi ? new Date(personData.doi).toISOString().split('T')[0] : "",
           age: personData.age?.toString() || "",
+          imageDescription: personData.imageDescription || "", // Handle the image description
         };
         
         setFormData(formattedData);
@@ -120,19 +123,19 @@ export default function EditPersonPage() {
     }));
   };
 
-  // Handle image upload from the ImageUpload component
-  const handleImageChange = (value: string) => {
+  // Handle image upload from the MediaUploader component
+  // Fix the handleImageUpload function to match the expected parameter type
+  const handleMediaUpload = (mediaData: { 
+    mediaUrl: string; 
+    publicId?: string; 
+    description: string; 
+    mediaId?: number;
+    mediaType: "video" | "image";
+  }) => {
     setFormData(prev => ({
       ...prev,
-      imageUrl: value,
-    }));
-  };
-
-  // Handle successful image upload
-  const handleImageUpload = (imageData: { imageUrl: string; publicId?: string; description: string; imageId?: number }) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrl: imageData.imageUrl,
+      imageUrl: mediaData.mediaUrl,
+      imageDescription: mediaData.description,
     }));
   };
 
@@ -593,16 +596,17 @@ export default function EditPersonPage() {
             </div>
           </div>
           
-          {/* Image Upload Section - Using ImageUploader component */}
+          {/* Image Upload Section - Using MediaUploader component */}
           <div>
             <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Upload Photo</h2>
             <div className="mb-6">
-              <ImageUploader 
-                imageUrl={formData.imageUrl} 
-                onChange={handleImageChange}
-                onImageUpload={handleImageUpload}
+              <MediaUploader
+                onMediaUpload={handleMediaUpload}
+                mediaUrl={formData.imageUrl}
+                onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value }))}
+                initialDescription={formData.imageDescription || ''}
                 idNumber={formData.idNumber}
-                initialDescription={`Photo of ${formData.name}`}
+                apiEndpoint="/api/upload"
               />
             </div>
           </div>
