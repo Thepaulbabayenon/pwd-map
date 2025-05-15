@@ -6,7 +6,7 @@ import L, { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PersonMapData, PersonImage as PersonImageType } from '@/lib/types';
 import Image from 'next/image';
-import { MapPinIcon, School, Hospital } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
 import RoutingMachine from './RoutingMachine';
 
 // Define type for Leaflet's Icon prototype
@@ -15,6 +15,15 @@ interface IconDefaultOptions {
   iconRetinaUrl: string;
   iconUrl: string;
   shadowUrl: string;
+}
+
+// Define facility type
+interface Facility {
+  type: 'hospital' | 'school';
+  name: string;
+  lat: number;
+  lng: number;
+  distance: number;
 }
 
 // Center coordinates for Guimbal, Iloilo, Philippines
@@ -39,7 +48,7 @@ const DISABILITY_COLORS: Record<string, string> = {
 };
 
 // Updated facilities data for Guimbal, Iloilo area
-const FACILITIES = [
+const FACILITIES: Facility[] = [
   { type: 'hospital', name: 'Iloilo Provincial Hospital', lat: 10.7135, lng: 122.3645, distance: 0 },
   { type: 'hospital', name: 'Medicus Medical Center', lat: 10.703128, lng: 122.552460, distance: 0 },
   { type: 'hospital', name: 'Medical City', lat: 10.699496, lng: 122.542783, distance: 0 },
@@ -146,7 +155,7 @@ function findNearestFacility(
   lat: number, 
   lng: number, 
   facilityType: 'hospital' | 'school' | 'both' = 'both'
-) {
+): Facility | null {
   const validFacilities = FACILITIES.filter(f => 
     facilityType === 'both' || f.type === facilityType
   ).map(facility => ({
@@ -157,13 +166,13 @@ function findNearestFacility(
   // Sort by distance
   validFacilities.sort((a, b) => a.distance - b.distance);
   
-  return validFacilities[0];
+  return validFacilities.length > 0 ? validFacilities[0] : null;
 }
 
 // DirectionsControl component
 interface DirectionsControlProps {
   person: PersonMapData;
-  facility: { type: string; name: string; lat: number; lng: number; };
+  facility: Facility;
 }
 
 const DirectionsControl = ({ person, facility }: DirectionsControlProps) => {
@@ -323,11 +332,11 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
 };
 
 // Facility marker component
-const FacilityMarker = ({ facility }: { facility: any }) => {
+const FacilityMarker = ({ facility }: { facility: Facility }) => {
   return (
     <Marker
       position={[facility.lat, facility.lng]}
-      icon={createFacilityIcon(facility.type as 'hospital' | 'school')}
+      icon={createFacilityIcon(facility.type)}
     >
       <Tooltip>
         <strong>{facility.name}</strong><br />
@@ -365,6 +374,7 @@ const FacilityLegend = () => {
 
 interface MapComponentProps {
   persons: PersonMapData[];
+  isRoutingReady: boolean;
 }
 
 export default function MapComponent({ persons }: MapComponentProps) {

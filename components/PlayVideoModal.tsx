@@ -1,6 +1,6 @@
 // src/components/PlayVideoModal.tsx (or your components path)
 'use client';
-import React, { useState, useEffect, useRef, MouseEvent } from "react";
+import React, { useState, useEffect, useRef, MouseEvent, useCallback } from "react";
 import NextImage from "next/image"; // Renamed to avoid conflict
 import ReactPlayer from "react-player/lazy"; // Lazy load ReactPlayer
 import { X } from "lucide-react";
@@ -42,27 +42,26 @@ const PlayVideoModal: React.FC<PlayVideoModalProps> = ({ media, onClose }) => {
     }
   }, [media]);
 
-  // Handle closing the modal
-  const handleClose = () => {
-    setIsPlaying(false);
-    if (media?.mediaType === 'video' && playerRef.current) {
-      // playerRef.current.seekTo(0); // Optional: reset video
-    }
-    onClose();
-  };
+  const handleClose = useCallback(() => {
+  setIsPlaying(false);
+  if (media?.mediaType === 'video' && playerRef.current) {
+    // playerRef.current.seekTo(0); // Optional: reset video
+  }
+  onClose();
+}, [media, onClose]); // Include dependencies that are used inside the callback
 
-  // Close modal on escape key
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleClose();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, []); // onClose dependency might be needed if handleClose changes
+// Close modal on escape key
+useEffect(() => {
+  const handleEsc = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      handleClose();
+    }
+  };
+  window.addEventListener('keydown', handleEsc);
+  return () => {
+    window.removeEventListener('keydown', handleEsc);
+  };
+}, [handleClose]); // Now this dependency won't change on every render
 
   if (!media) return null;
 

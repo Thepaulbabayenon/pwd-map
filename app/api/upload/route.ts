@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File;
   const idNumber = formData.get('idNumber') as string;
   const description = formData.get('description') as string || 'No description provided';
-  const fileType = formData.get('fileType') as string || 'image'; // Default to image if not specified
 
   if (!file) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });

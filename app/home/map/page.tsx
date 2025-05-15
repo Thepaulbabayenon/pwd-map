@@ -1,5 +1,5 @@
 import {db} from "@/app/db/db";
-import { PersonMapData, PersonMedia} from '@/lib/types';
+import { PersonMapData} from '@/lib/types';
 import { MapPinIcon, BarChart3Icon, Users2Icon, ImageIcon, InfoIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import Link from 'next/link';

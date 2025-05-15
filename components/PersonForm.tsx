@@ -4,7 +4,7 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPinIcon, UserIcon, Save, Image as ImageIcon, X } from 'lucide-react';
-import ImageUploader from './ImageUpload';
+import MediaUploader from './ImageUpload';
 
 // Define types
 interface Coordinates {
@@ -28,6 +28,8 @@ interface FormDataType {
   idStatus: string;
   employment: string;
   doi: string;
+  imageUrl?: string;
+  imageDescription?: string;
 }
 
 interface UploadedImage {
@@ -59,7 +61,9 @@ const PersonForm: React.FC<PersonFormProps> = ({ initialCoordinates }) => {
     idNumber: '',
     idStatus: '',
     employment: '',
-    doi: ''
+    doi: '',
+    imageUrl: '',
+    imageDescription: '',
   });
 
   // Handle form input changes
@@ -71,10 +75,22 @@ const PersonForm: React.FC<PersonFormProps> = ({ initialCoordinates }) => {
     }));
   };
 
-  // Handle image upload
-  const handleImageUpload = (imageData: UploadedImage) => {
-    setUploadedImages(prev => [...prev, imageData]);
+   // Fix the handleImageUpload function to match the expected parameter type
+  const handleMediaUpload = (mediaData: { 
+    mediaUrl: string; 
+    publicId?: string; 
+    description: string; 
+    mediaId?: number;
+    mediaType: "video" | "image";
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: mediaData.mediaUrl,
+      imageDescription: mediaData.description,
+    }));
   };
+
+
 
   // Remove an uploaded image
   const removeImage = (index: number) => {
@@ -124,7 +140,7 @@ const PersonForm: React.FC<PersonFormProps> = ({ initialCoordinates }) => {
       }
 
       // Success! Redirect to the map page
-      router.push('/map');
+      router.push('/home/map');
       router.refresh();
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -410,8 +426,14 @@ const PersonForm: React.FC<PersonFormProps> = ({ initialCoordinates }) => {
 
         {/* Image Upload Section */}
         <div className="space-y-4">
-          <ImageUploader onImageUpload={handleImageUpload} />
-          
+          <MediaUploader
+                          onMediaUpload={handleMediaUpload}
+                          mediaUrl={formData.imageUrl}
+                          onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value }))}
+                          initialDescription={formData.imageDescription || ''}
+                          idNumber={formData.idNumber}
+                          apiEndpoint="/api/upload"
+                        />
           {/* Display uploaded images */}
           {uploadedImages.length > 0 && (
             <div className="mt-4">

@@ -6,7 +6,7 @@ import { Marker, Tooltip, Popup } from 'react-leaflet';
 import L, { LatLngExpression } from 'leaflet';
 import Image from 'next/image';
 import { PersonMapData, PersonImage as PersonImageType } from '@/lib/types';
-import EnhancedDirectionsControl from '../EnhancedDirectionsControl';
+import EnhancedDirectionsControl from '@/components/Map/EnhancedDirectionsControl';
 
 // Interface for finding nearest facility
 interface Facility {
@@ -109,13 +109,6 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
   const handleMarkerClick = useCallback(() => {
     setIsOpen(true);
   }, []);
-  
-  // Check if person has video media or images
-  const hasVideoOrImages = useMemo(() => {
-    const hasVideo = person.media?.some(m => m.mediaType === 'video');
-    const hasImages = (person.images?.length ?? 0) > 0 || person.media?.some(m => m.mediaType === 'image');
-    return hasVideo || hasImages;
-  }, [person.media, person.images]);
 
   // Find nearest facility if the person has video or images
   const nearestFacility = useMemo(() => {

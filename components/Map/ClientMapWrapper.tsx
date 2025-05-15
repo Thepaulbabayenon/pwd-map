@@ -22,12 +22,9 @@ interface ClientMapWrapperProps {
 }
 
 export default function ClientMapWrapper({ persons }: ClientMapWrapperProps) {
-  // State to track loading of routing library
   const [isRoutingReady, setIsRoutingReady] = useState(false);
   
-  // If persons data is large, useMemo to prevent unnecessary recalculations
   const filteredPersons = useMemo(() => {
-    // Filter out any persons with invalid coordinates, just to be extra safe
     return persons.filter(p => 
       typeof p.latitude === 'number' && 
       typeof p.longitude === 'number' &&
@@ -36,20 +33,14 @@ export default function ClientMapWrapper({ persons }: ClientMapWrapperProps) {
     );
   }, [persons]);
 
-  // Control loading state
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Load the leaflet-routing-machine script dynamically
     const loadRoutingMachine = async () => {
       try {
-        // Check if we're in browser environment
         if (typeof window !== 'undefined') {
-          // Check if Leaflet is already loaded
           if (window.L) {
-            // Check if routing machine is already loaded
             if (!window.L.Routing) {
-              // Add leaflet-routing-machine CSS
               const routingCss = document.createElement('link');
               routingCss.rel = 'stylesheet';
               routingCss.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css';
@@ -62,32 +53,35 @@ export default function ClientMapWrapper({ persons }: ClientMapWrapperProps) {
               
               routingScript.onload = () => {
                 setIsRoutingReady(true);
+                setIsLoading(false); // End loading when routing is ready
               };
               
               document.body.appendChild(routingScript);
             } else {
               setIsRoutingReady(true);
+              setIsLoading(false); // End loading when routing is ready
             }
           }
         }
       } catch (error) {
         console.error("Error loading routing machine:", error);
+        setIsLoading(false); // End loading even if there's an error
       }
     };
     
     loadRoutingMachine();
     
-    // Add a slight delay to ensure proper initialization
+    // Fallback timer in case something goes wrong with routing initialization
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 1000); // Increased from 500ms to give more time for routing to initialize
     
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="h-full w-full rounded-lg overflow-hidden">
-      {!isLoading && <MapWithNoSSR persons={filteredPersons} />}
+      {!isLoading && <MapWithNoSSR persons={filteredPersons} isRoutingReady={isRoutingReady} />}
       
       {isLoading && (
         <div className="h-full w-full flex items-center justify-center bg-gray-50">

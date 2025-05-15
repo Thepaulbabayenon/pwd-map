@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react"; // useEffect for potential debugging
+import React, { useState } from "react"; // useEffect for potential debugging
 import Link from "next/link";
 import { ArrowLeft, MapPin, Calendar, Briefcase, IdCard } from "lucide-react";
 import MediaCard from "@/components/MediaCard"; // Assuming this component exists
@@ -59,14 +59,6 @@ function PersonPageClient({
     setSelectedMedia(null);
   };
 
-  // Optional: useEffect for debugging when selectedMedia changes
-  // useEffect(() => {
-  //   if (selectedMedia) {
-  //     console.log("PlayVideoModal should be visible with:", selectedMedia);
-  //   } else {
-  //     console.log("PlayVideoModal should be hidden.");
-  //   }
-  // }, [selectedMedia]);
 
   return (
     <div className="max-w-5xl mx-auto p-6"> {/* Parent z-index. Modal should be higher. */}

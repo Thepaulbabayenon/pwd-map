@@ -56,7 +56,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       if (idNumber && showExistingMedia) {
         try {
           setLoading(true);
-          const response = await fetch(`/api/upload/media?idNumber=${idNumber}`);
+          const response = await fetch(`/api/upload/image?idNumber=${idNumber}`);
           if (!response.ok) {
             throw new Error('Failed to fetch media');
           }
@@ -81,7 +81,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/upload/media?idNumber=${idNumber}`);
+      const response = await fetch(`/api/upload/image?idNumber=${idNumber}`);
       if (!response.ok) {
         throw new Error('Failed to fetch media');
       }

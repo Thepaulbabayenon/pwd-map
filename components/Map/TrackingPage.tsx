@@ -52,8 +52,8 @@ interface TrackingPageProps {
 
 const TrackingPage = ({ person, facility }: TrackingPageProps) => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading] = useState(false);
+  const [error] = useState(null);
   const [proximityChecked, setProximityChecked] = useState(false);
   const [isNearPerson, setIsNearPerson] = useState(false);
   const [navigationStarted, setNavigationStarted] = useState(false);
@@ -65,10 +65,7 @@ const TrackingPage = ({ person, facility }: TrackingPageProps) => {
   const watchIdRef = useRef<number | null>(null);
   
   // Calculate distance between two coordinates in meters
-interface Coordinates {
-    lat: number;
-    lon: number;
-}
+
 
 const calculateDistance = (
     lat1: number, 
@@ -278,7 +275,7 @@ const calculateDistance = (
             {!proximityChecked ? (
               <div className="text-center py-4">
                 <p className="text-gray-600 mb-4">
-                  Before we can provide directions, we need to verify if you're near the person's location.
+                  Before we can provide directions, we need to verify if you&aposre near the person&aposs location.
                 </p>
                 <button
                   onClick={checkProximity}
@@ -291,10 +288,10 @@ const calculateDistance = (
             ) : !isNearPerson ? (
               <div className="bg-red-50 border border-red-200 rounded-md p-4 text-center">
                 <p className="text-red-700">
-                  You are {distance ? `${(distance/1000).toFixed(2)}km` : 'too far'} away from the person's location.
+                  You are {distance ? `${(distance/1000).toFixed(2)}km` : 'too far'} away from the person&aposs location.
                 </p>
                 <p className="text-gray-600 mt-2">
-                  Please go closer to the person's location before starting navigation.
+                  Please go closer to the person&aposs location before starting navigation.
                 </p>
                 <button
                   onClick={checkProximity}
@@ -306,7 +303,7 @@ const calculateDistance = (
             ) : !navigationStarted ? (
               <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
                 <p className="text-green-700">
-                  You are near the person's location! Ready to navigate to {facility.name}.
+                  You are near the person&aposs location! Ready to navigate to {facility.name}.
                 </p>
                 <button
                   onClick={startNavigation}

@@ -104,25 +104,36 @@ export default function EditPersonPage() {
     }
   }, [personId]);
 
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+ // Modify your handleChange function to properly type-convert numeric fields
+const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const { name, value } = e.target;
+  
+  // Clear error when field is edited
+  if (errors[name]) {
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  }
+  
+  // Handle numeric conversions for latitude and longitude
+  if (name === 'latitude' || name === 'longitude') {
+    // Only convert to number if the value is not empty
+    const numValue = value === '' ? undefined : parseFloat(value);
     
-    // Clear error when field is edited
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-    
+    setFormData(prev => ({
+      ...prev,
+      [name]: numValue,
+    }));
+  } else {
+    // Handle all other fields normally as strings
     setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
-  };
-
+  }
+};
   // Handle image upload from the MediaUploader component
   // Fix the handleImageUpload function to match the expected parameter type
   const handleMediaUpload = (mediaData: { 

@@ -2,7 +2,7 @@
 'use client';
 import React from "react";
 import NextImage from "next/image"; // Renamed to avoid conflict with HTMLImageElement if used elsewhere
-import { PlayCircle, Image as ImageIcon } from "lucide-react"; // Using PlayCircle for video overlay
+import { PlayCircle } from "lucide-react"; // Using PlayCircle for video overlay
 
 // This interface should ideally match what PersonPageClient uses for its media objects.
 // If you have a shared types file, import it. Otherwise, ensure consistency.

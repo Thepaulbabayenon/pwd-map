@@ -30,7 +30,7 @@ const TrackingMap = dynamic(
 // Main Page Component
 export default function TrackingPage() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [proximityChecked, setProximityChecked] = useState(false);
   const [isNearPerson, setIsNearPerson] = useState(false);
   const [navigationStarted, setNavigationStarted] = useState(false);
@@ -262,7 +262,7 @@ export default function TrackingPage() {
             {!proximityChecked ? (
               <div className="text-center py-4">
                 <p className="text-gray-600 mb-4">
-                  Before we can provide directions, we need to verify if you're near the person's location.
+                  Before we can provide directions, we need to verify if you&aposre near the person&aposs location.
                 </p>
                 <button
                   onClick={checkProximity}
@@ -275,10 +275,10 @@ export default function TrackingPage() {
             ) : !isNearPerson ? (
               <div className="bg-red-50 border border-red-200 rounded-md p-4 text-center">
                 <p className="text-red-700">
-                  You are {distance ? `${(distance/1000).toFixed(2)}km` : 'too far'} away from the person's location.
+                  You are {distance ? `${(distance/1000).toFixed(2)}km` : 'too far'} away from the person&aposs location.
                 </p>
                 <p className="text-gray-600 mt-2">
-                  Please move closer to the person's location before starting navigation.
+                  Please move closer to the person&aposs location before starting navigation.
                 </p>
                 <button
                   onClick={checkProximity}
@@ -290,7 +290,7 @@ export default function TrackingPage() {
             ) : !navigationStarted ? (
               <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
                 <p className="text-green-700">
-                  You are near the person's location! Ready to navigate to {facilityData.name}.
+                  You are near the person&aposs location! Ready to navigate to {facilityData.name}.
                 </p>
                 <button
                   onClick={startNavigation}

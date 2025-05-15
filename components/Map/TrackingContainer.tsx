@@ -66,11 +66,12 @@ const TrackingContainer = () => {
   }, [searchParams]);
 
   // Mock function to fetch person data - replace with actual API call
-  const fetchPersonData = async (id: string): Promise<PersonMapDataType> => {
+  const fetchPersonData = async (personId: string): Promise<PersonMapDataType> => {
     // Simulate API call
+    console.log(`Fetching data for person ID: ${personId}`);
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Replace with actual API call
+        // Replace with actual API call that would use personId
         resolve({
           firstName: 'John',
           lastName: 'Doe',
@@ -83,11 +84,12 @@ const TrackingContainer = () => {
   };
 
   // Mock function to fetch facility data - replace with actual API call
-  const fetchFacilityData = async (id: string): Promise<FacilityDataType> => {
+  const fetchFacilityData = async (facilityId: string): Promise<FacilityDataType> => {
     // Simulate API call
+    console.log(`Fetching data for facility ID: ${facilityId}`);
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Replace with actual API call
+        // Replace with actual API call that would use facilityId
         resolve({
           name: 'City Hospital',
           type: 'medical',

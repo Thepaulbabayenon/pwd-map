@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -13,15 +13,17 @@ interface RoutingMachineProps {
 }
 
 const RoutingMachine = ({ start, end }: RoutingMachineProps) => {
-  const map = useRef<L.Map | null>(null);
-  const routingControl = useRef<L.Control | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const routingControl = useRef<L.Routing.Control | null>(null);
 
   useEffect(() => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
+    
+    const map = mapRef.current;
 
     // Remove previous routing control if it exists
     if (routingControl.current) {
-      map.current.removeControl(routingControl.current);
+      map.removeControl(routingControl.current);
     }
 
     // Create new routing control
@@ -40,16 +42,15 @@ const RoutingMachine = ({ start, end }: RoutingMachineProps) => {
         ],
         extendToWaypoints: true,
         missingRouteTolerance: 1
-      },
-      createMarker: function() { return null; } // Don't create default markers
-    }).addTo(map.current);
+      }
+    }).addTo(map);
 
     return () => {
-      if (routingControl.current && map.current) {
-        map.current.removeControl(routingControl.current);
+      if (routingControl.current) {
+        map.removeControl(routingControl.current);
       }
     };
-  }, [map, start, end]);
+  }, [start, end]);
 
   return null;
 };
@@ -134,14 +135,22 @@ interface TrackingMapProps {
 }
 
 const TrackingMap = ({ person, facility, currentPosition, showDirections }: TrackingMapProps) => {
-  const personPosition: [number, number] = [person.latitude, person.longitude];
-  const facilityPosition: [number, number] = [facility.lat, facility.lng];
+  // Use useMemo to prevent array recreations on each render
+  const personPosition = useMemo<[number, number]>(
+    () => [person.latitude, person.longitude],
+    [person.latitude, person.longitude]
+  );
+  
+  const facilityPosition = useMemo<[number, number]>(
+    () => [facility.lat, facility.lng],
+    [facility.lat, facility.lng]
+  );
+  
   const mapRef = useRef<L.Map | null>(null);
 
   // Fix Leaflet default icon issue in Next.js
   useEffect(() => {
     // This is needed because Next.js and Leaflet don't play well together with default icons
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
       iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -149,12 +158,12 @@ const TrackingMap = ({ person, facility, currentPosition, showDirections }: Trac
     });
   }, []);
 
-  // Calculate map bounds to include all markers
-  const getBounds = () => {
+  // Calculate map bounds to include all markers using useCallback
+  const getBounds = useCallback(() => {
     const points = [personPosition, facilityPosition];
     if (currentPosition) points.push(currentPosition);
     return L.latLngBounds(points.map(point => L.latLng(point[0], point[1])));
-  };
+  }, [personPosition, facilityPosition, currentPosition]);
 
   // Fit bounds when map is ready or dependencies change
   useEffect(() => {
@@ -162,10 +171,13 @@ const TrackingMap = ({ person, facility, currentPosition, showDirections }: Trac
       const bounds = getBounds();
       mapRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [personPosition, facilityPosition, currentPosition]);
+  }, [getBounds]);
 
   // Determine the starting point for directions
-  const directionsStart = currentPosition || personPosition;
+  const directionsStart = useMemo(
+    () => currentPosition || personPosition,
+    [currentPosition, personPosition]
+  );
 
   return (
     <MapContainer

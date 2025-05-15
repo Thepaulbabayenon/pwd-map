@@ -2,7 +2,7 @@
 
 import { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, UserRound, Building, ArrowRight } from 'lucide-react';
+import { MapPin, UserRound, ArrowRight } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 
 // Define disability types for dropdown options
@@ -12,16 +12,6 @@ const disabilityTypes = [
   'Mobility Impairment',
   'Cognitive Impairment',
   'Other'
-];
-
-// Define facility types for dropdown options
-const facilityTypes = [
-  'hospital',
-  'clinic',
-  'rehabilitation center',
-  'community center',
-  'special needs school',
-  'other'
 ];
 
 const LocationInputForm = () => {
@@ -41,23 +31,13 @@ const LocationInputForm = () => {
     longitude: '',
   });
   
-  // Handle input changes
-type FormData = {
-    firstName: string;
-    lastName: string;
-    disabilityType: string;
-    specificDisability: string;
-    latitude: string;
-    longitude: string;
-};
-
-const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
-        ...formData,
-        [name]: value
+      ...formData,
+      [name]: value
     });
-};
+  };
   
   // Use geolocation API to get current location
   const getCurrentLocation = () => {
@@ -132,14 +112,14 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
     
     // Here you would typically submit to your API
     // For now, we'll simulate an API call with a timeout
-    toast.loading('Saving person data...');
+    const loadingToast = toast.loading('Saving person data...');
     
     try {
       // Simulate API call with timeout
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Success toast
-      toast.dismiss();
+      toast.dismiss(loadingToast);
       toast.success('Person added successfully!');
       
       // Reset form
@@ -158,9 +138,10 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
       // In a real app, you might use SWR or React Query to revalidate
       router.refresh();
       
-    } catch (error) {
-      toast.dismiss();
+    } catch (err) {
+      toast.dismiss(loadingToast);
       toast.error('Error saving data. Please try again.');
+      console.error('Error saving form data:', err);
     }
   };
   
@@ -185,6 +166,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="John"
+                  required
                 />
               </div>
               
@@ -199,6 +181,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Doe"
+                  required
                 />
               </div>
             </div>
@@ -212,6 +195,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
                 value={formData.disabilityType}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               >
                 <option value="">Select disability type</option>
                 {disabilityTypes.map((type) => (
@@ -253,7 +237,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
         return (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Location Information</h2>
-            <p className="text-gray-600 text-sm">Enter the person's current location</p>
+            <p className="text-gray-600 text-sm">Enter the person&aposs current location</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -267,6 +251,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g. 37.7749"
+                  required
                 />
               </div>
               
@@ -281,6 +266,7 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g. -122.4194"
+                  required
                 />
               </div>
             </div>
@@ -350,4 +336,5 @@ const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectE
     </div>
   );
 };
+
 export default LocationInputForm;
