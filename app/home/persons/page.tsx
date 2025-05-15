@@ -124,11 +124,6 @@ export default function PersonTable() {
                           Edit
                         </Button>
                       </Link>
-                      <Link href={`/home/persons/${person.id}/delete`}>
-                        <Button variant="outline" size="sm" className="hover:bg-red-500 hover:text-white">
-                          Delete
-                        </Button>
-                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
