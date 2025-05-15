@@ -49,7 +49,7 @@ const DISABILITY_COLORS: Record<string, string> = {
 
 // Updated facilities data for Guimbal, Iloilo area
 const FACILITIES: Facility[] = [
-  { type: 'hospital', name: 'Iloilo Provincial Hospital', lat: 10.7135, lng: 122.3645, distance: 0 },
+  { type: 'hospital', name: 'Iloilo Provincial Hospital', lat: 10.926838, lng: 122.630375, distance: 0 },
   { type: 'hospital', name: 'Medicus Medical Center', lat: 10.703128, lng: 122.552460, distance: 0 },
   { type: 'hospital', name: 'Medical City', lat: 10.699496, lng: 122.542783, distance: 0 },
   { type: 'hospital', name: 'St. Pauls Hospital Iloilo Inc.', lat: 10.701560, lng: 122.566712, distance: 0 },

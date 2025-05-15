@@ -184,7 +184,8 @@ export default function HomePage() {
             images: [
               { imageUrl: "/api/placeholder/150/150", description: "Medical certificate" },
               { imageUrl: "/api/placeholder/150/150", description: "ID card" }
-            ]
+            ],
+            media: []
           },
           {
             id: 2,
@@ -196,7 +197,8 @@ export default function HomePage() {
             specificDisability: "Low vision",
             images: [
               { imageUrl: "/api/placeholder/150/150", description: "Medical assessment" }
-            ]
+            ],
+            media: []
           },
           {
             id: 3,
@@ -206,7 +208,8 @@ export default function HomePage() {
             longitude: 121.0244,
             disabilityType: "Hearing",
             specificDisability: "Partial hearing loss",
-            images: []
+            images: [],
+            media: []
           }
         ];
 
@@ -300,6 +303,7 @@ export default function HomePage() {
               This platform aims to enhance awareness and support for inclusivity.
             </p>
             <div className="flex flex-wrap gap-4">
+              <Link href="/home/map">
               <button
                 onClick={() => setActiveTab('map')}
                 className="bg-white text-blue-800 font-medium py-3 px-8 rounded-md shadow-lg hover:bg-blue-50 transition duration-300 flex items-center group"
@@ -309,6 +313,7 @@ export default function HomePage() {
                 <span>View Interactive Map</span>
                 <ChevronRightIcon className="h-5 w-5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
               </button>
+              </Link>
               <Link
                 href="/about"
                 className="bg-transparent border-2 border-white text-white font-medium py-3 px-8 rounded-md hover:bg-white hover:bg-opacity-10 transition duration-300 flex items-center"
@@ -526,7 +531,7 @@ export default function HomePage() {
                     {isLoading ? (
                       <LoadingIndicator />
                     ) : (
-                      <MapComponent persons={persons} />
+                      <MapComponent persons={persons} isRoutingReady={true} />
                     )}
                   </div>
                   
