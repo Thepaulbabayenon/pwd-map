@@ -418,6 +418,7 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
             <strong>{`${person.firstName} ${person.lastName}`}</strong><br />
             <span>{person.disabilityType}</span>
             {hasVideo && <span className="block text-xs italic mt-1">(Has video - click for directions)</span>}
+            {hasImages && <span className="block text-xs italic mt-1">(Has images - click to view)</span>}
           </div>
         </Tooltip>
         <Popup 
@@ -439,6 +440,14 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
             {person.specificDisability && (
               <p><strong>Specific:</strong> {person.specificDisability}</p>
             )}
+            
+            {/* Display information about available media */}
+            {hasImages && !isOpen && (
+              <p className="text-sm text-blue-600 mt-2">
+                <span className="font-medium">Images available.</span> Click to load.
+              </p>
+            )}
+            
             {mediaContent}
             
             {/* Show directions options if the person has video */}
@@ -581,11 +590,11 @@ export default function MapComponent({ persons }: MapComponentProps) {
         <FacilityLegend />
       </div>
       
-      {/* Information overlay to explain routing feature */}
+      {/* Information overlay to explain media and routing features */}
       <div className="absolute top-4 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md border border-gray-200 max-w-xs">
         <h4 className="text-sm font-semibold mb-1">Guimbal Facilities</h4>
         <p className="text-xs text-gray-600">
-          Click on person markers with video content (indicated in tooltip) to see routing options to the nearest hospital, school, or municipality building.
+          Click on person markers with video content to see routing options to the nearest facilities. Person markers with images will display proof images when clicked.
         </p>
       </div>
     </div>

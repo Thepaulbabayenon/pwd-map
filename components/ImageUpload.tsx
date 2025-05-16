@@ -4,6 +4,15 @@ import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Upload, X, CheckCircle, Camera, Trash2, Film } from 'lucide-react';
 
+// Define type for the media item
+interface MediaItem {
+  id: number;
+  url: string;
+  description: string;
+  createdAt: string;
+  mediaType: 'image' | 'video';
+}
+
 // Define updated types for the component props
 interface MediaUploaderProps {
   onMediaUpload: (mediaData: {
@@ -44,13 +53,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [description, setDescription] = useState<string>(initialDescription);
   const [mediaType, setMediaType] = useState<'image' | 'video'>(initialMediaType);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [existingMedia, setExistingMedia] = useState<Array<{
-    id: number;
-    url: string;
-    description: string;
-    createdAt: string;
-    mediaType: 'image' | 'video';
-  }>>([]);
+  const [existingMedia, setExistingMedia] = useState<MediaItem[]>([]);
   const [videoCount, setVideoCount] = useState<number>(0);
   const [videoLimitReached, setVideoLimitReached] = useState<boolean>(false);
 
@@ -69,7 +72,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             setExistingMedia(data.media);
             
             // Count the number of videos
-            const videos = data.media.filter((item: any) => item.mediaType === 'video');
+            const videos = data.media.filter((item: MediaItem) => item.mediaType === 'video');
             setVideoCount(videos.length);
             setVideoLimitReached(videos.length >= maxVideosAllowed);
           }
@@ -99,7 +102,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         setExistingMedia(data.media);
         
         // Count the number of videos
-        const videos = data.media.filter((item: any) => item.mediaType === 'video');
+        const videos = data.media.filter((item: MediaItem) => item.mediaType === 'video');
         setVideoCount(videos.length);
         setVideoLimitReached(videos.length >= maxVideosAllowed);
       }
@@ -142,7 +145,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       return;
     }
 
-    setMediaType(isVideo ? 'video' : 'image');
+    const newMediaType = isVideo ? 'video' : 'image';
+    setMediaType(newMediaType);
 
     // File size validation (limit to 50MB for videos, 5MB for images)
     const maxSize = isVideo ? 500 * 1024 * 1024 : 5 * 1024 * 1024;
@@ -200,7 +204,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       onMediaUpload({
         mediaUrl: preview,
         description: description.trim() || 'No description provided',
-        mediaType: mediaType
+        mediaType
       });
       setUploadSuccess(true);
       setTimeout(() => {
@@ -287,19 +291,29 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   };
 
   // Handle deleting an existing media item
-  const handleDeleteMedia = async (mediaId: number, mediaType: 'image' | 'video') => {
+  const handleDeleteMedia = async (mediaId: number, itemMediaType: 'image' | 'video') => {
     if (!confirm('Are you sure you want to delete this media item?')) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/upload/delete?mediaId=${mediaId}`, {
+      // Use the itemMediaType to create a more specific confirmation message
+      const mediaTypeLabel = itemMediaType === 'video' ? 'video' : 'image';
+      console.log(`Deleting ${mediaTypeLabel} with ID: ${mediaId}`);
+      
+      const response = await fetch(`/api/upload/delete?mediaId=${mediaId}&mediaType=${itemMediaType}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete media');
+        throw new Error(errorData.error || `Failed to delete ${mediaTypeLabel}`);
+      }
+
+      // Update video count if a video was deleted
+      if (itemMediaType === 'video') {
+        setVideoCount(prev => Math.max(0, prev - 1));
+        setVideoLimitReached(false);
       }
 
       // Refresh the media list
@@ -311,10 +325,10 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         setUploadSuccess(false);
       }, 2000);
     } catch (err) {
-      console.error('Error deleting media:', err);
+      console.error(`Error deleting ${itemMediaType}:`, err);
       setError(typeof err === 'object' && err !== null && 'message' in err 
         ? (err as Error).message 
-        : 'Failed to delete media. Please try again.');
+        : `Failed to delete ${itemMediaType}. Please try again.`);
     }
   };
 
@@ -363,12 +377,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   };
 
   // Render media grid item based on media type
-  const renderMediaItem = (item: {
-    id: number;
-    url: string;
-    description: string;
-    mediaType: 'image' | 'video';
-  }) => {
+  const renderMediaItem = (item: MediaItem) => {
     if (item.mediaType === 'video') {
       return (
         <div key={item.id} className="relative border border-gray-200 rounded-md overflow-hidden">
