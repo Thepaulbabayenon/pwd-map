@@ -19,7 +19,7 @@ interface IconDefaultOptions {
 
 // Define facility type
 interface Facility {
-  type: 'hospital' | 'school';
+  type: 'hospital' | 'school' | 'municipality';
   name: string;
   lat: number;
   lng: number;
@@ -47,8 +47,16 @@ const DISABILITY_COLORS: Record<string, string> = {
   'Unknown': '#94A3B8', // Slate
 };
 
+// Facility colors
+const FACILITY_COLORS = {
+  'hospital': '#ef4444', // Red
+  'school': '#3b82f6',   // Blue
+  'municipality': '#10b981' // Green
+};
+
 // Updated facilities data for Guimbal, Iloilo area
 const FACILITIES: Facility[] = [
+  // Hospitals
   { type: 'hospital', name: 'Iloilo Provincial Hospital', lat: 10.926838, lng: 122.630375, distance: 0 },
   { type: 'hospital', name: 'Medicus Medical Center', lat: 10.703128, lng: 122.552460, distance: 0 },
   { type: 'hospital', name: 'Medical City', lat: 10.699496, lng: 122.542783, distance: 0 },
@@ -57,10 +65,29 @@ const FACILITIES: Facility[] = [
   { type: 'hospital', name: 'Miag-ao Rural Health Unit', lat: 10.6425, lng: 122.2307, distance: 0 },
   { type: 'hospital', name: 'Guimbal RHU', lat: 10.661206, lng: 122.321739, distance: 0 },
   { type: 'hospital', name: 'Rep. Pedro Trono Memorial District Hospital', lat: 10.662150, lng: 122.323152, distance: 0 },
-  { type: 'school', name: 'UPV Infimary', lat: 10.646094, lng: 122.230378, distance: 0 },
-  { type: 'school', name: 'Guimbal National High School', lat: 10.6731, lng: 122.3148, distance: 0 },
+  { type: 'hospital', name: 'UPV Infimary', lat: 10.646094, lng: 122.230378, distance: 0 },
+  
+  // Schools
+  { type: 'school', name: 'Guimbal National High School', lat: 10.665848585273197, lng: 122.32456160736905, distance: 0 },
   { type: 'school', name: 'SPED Integrated School - Iloilo', lat: 10.7155, lng: 122.5483, distance: 0 },
-  { type: 'school', name: 'Western Visayas College of Science and Technology', lat: 10.6872, lng: 122.5679, distance: 0 },
+  { type: 'school', name: 'St. Nicholas of Tolentino Kinder School', lat: 10.660711972648416, lng: 122.32283235589303, distance: 0 },
+  { type: 'school', name: 'Guimbal Central Elementary School', lat: 10.663860453620243, lng: 122.32486586448776, distance: 0 },
+  { type: 'school', name: 'Cabasi-Sta. Rosa Elementary School', lat: 10.660588175845408, lng: 122.30864193289455, distance: 0 },
+  { type: 'school', name: 'Particion Elementary School', lat: 10.679200829590059, lng: 122.30611324242876, distance: 0 },
+  { type: 'school', name: 'Guimbal Providence Christian School', lat: 10.66056123591504, lng: 122.31631014687247, distance: 0 },
+  { type: 'school', name: 'PG Garin Memorial Elementary School', lat: 10.687339645432425, lng: 122.29347039927015, distance: 0 },
+  { type: 'school', name: 'Particion High School', lat: 10.679114939910567, lng: 122.30673956019648, distance: 0 },
+  { type: 'school', name: 'Sipitan-Badiang Elementary School', lat: 10.681321590081991, lng: 122.31357828159695, distance: 0 },
+  { type: 'school', name: 'Calampitao Elementary School', lat: 10.669184815860572, lng: 122.2778536175646, distance: 0 },
+  { type: 'school', name: 'Valencia Elementary School', lat: 10.657649416215124, lng: 122.26734035929222, distance: 0 },
+  { type: 'school', name: 'Kinaadman Elementary School', lat: 10.674938444995103, lng: 122.35215291730107, distance: 0 },
+  { type: 'school', name: 'Buyu-an Elementary School', lat: 10.672928570625528, lng: 122.3577505765584, distance: 0 },
+  { type: 'school', name: 'El Shekinah International Christian School', lat: 10.662312194163174, lng: 122.32582686660834, distance: 0 },
+  { type: 'school', name: 'Guimbal National High School', lat: 10.665790479865034, lng: 122.32462312013544, distance: 0 },
+  
+  // Municipality buildings
+  { type: 'municipality', name: 'PWD Center', lat: 10.660666957369044, lng: 122.32350224053643, distance: 0 },
+  // You can add more municipality buildings as needed
 ];
 
 // Custom icon creation function
@@ -82,29 +109,40 @@ function createMarkerIcon(color: string): L.DivIcon {
   });
 }
 
-// Create facility icon
-function createFacilityIcon(type: 'hospital' | 'school'): L.DivIcon {
-  const color = type === 'hospital' ? '#ef4444' : '#3b82f6';
-  const icon = type === 'hospital' ? 'H' : 'S';
+// Create facility icon with SVG - Fixed and improved icons
+function createFacilityIcon(type: 'hospital' | 'school' | 'municipality'): L.DivIcon {
+  const color = FACILITY_COLORS[type];
+  let svgIcon;
+  
+  if (type === 'hospital') {
+    // Hospital icon with cross
+    svgIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+        <circle cx="12" cy="12" r="11" fill="${color}" stroke="white" stroke-width="2"/>
+        <path d="M7 12h10M12 7v10" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    `;
+  } else if (type === 'school') {
+    // School icon (graduation cap)
+    svgIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+        <circle cx="12" cy="12" r="11" fill="${color}" stroke="white" stroke-width="2"/>
+        <path d="M6 14L12 8l6 6M9 16v-3M15 16v-3M12 8v8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    `;
+  } else {
+    // Municipality icon (building)
+    svgIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+        <circle cx="12" cy="12" r="11" fill="${color}" stroke="white" stroke-width="2"/>
+        <path d="M7 10h10v7H7v-7zM9 17v-4M12 17v-4M15 17v-4M8 10V7l4-2 4 2v3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
   
   return L.divIcon({
     className: 'facility-marker',
-    html: `
-      <div style="
-        width: 28px; 
-        height: 28px; 
-        border-radius: 50%; 
-        background-color: ${color}; 
-        border: 2px solid white; 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        color: white;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-      ">${icon}</div>
-    `,
+    html: svgIcon,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   });
@@ -150,14 +188,14 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c; // Distance in km
 }
 
-// Find nearest facility for a person
+// Find nearest facility for a person for a specific type
 function findNearestFacility(
   lat: number, 
   lng: number, 
-  facilityType: 'hospital' | 'school' | 'both' = 'both'
+  facilityType: 'hospital' | 'school' | 'municipality'
 ): Facility | null {
   const validFacilities = FACILITIES.filter(f => 
-    facilityType === 'both' || f.type === facilityType
+    f.type === facilityType
   ).map(facility => ({
     ...facility,
     distance: calculateDistance(lat, lng, facility.lat, facility.lng)
@@ -169,31 +207,115 @@ function findNearestFacility(
   return validFacilities.length > 0 ? validFacilities[0] : null;
 }
 
-// DirectionsControl component
+// DirectionsControl component - Updated to show routes to multiple facilities
 interface DirectionsControlProps {
   person: PersonMapData;
-  facility: Facility;
+  hasVideo: boolean;
 }
 
-const DirectionsControl = ({ person, facility }: DirectionsControlProps) => {
-  const [showDirections, setShowDirections] = useState(false);
+const DirectionsControl = ({ person, hasVideo }: DirectionsControlProps) => {
+  const [activeDirections, setActiveDirections] = useState<string | null>(null);
   
-  if (!facility) return null;
+  // Find nearest facilities
+  const nearestHospital = useMemo(() => 
+    findNearestFacility(person.latitude, person.longitude, 'hospital'),
+  [person.latitude, person.longitude]);
+  
+  const nearestSchool = useMemo(() => 
+    findNearestFacility(person.latitude, person.longitude, 'school'),
+  [person.latitude, person.longitude]);
+  
+  const nearestMunicipality = useMemo(() => 
+    findNearestFacility(person.latitude, person.longitude, 'municipality'),
+  [person.latitude, person.longitude]);
+  
+  if (!hasVideo) return null;
+  
+  const handleDirectionClick = (facilityType: string) => {
+    // Toggle off if already active
+    if (activeDirections === facilityType) {
+      setActiveDirections(null);
+    } else {
+      setActiveDirections(facilityType);
+    }
+  };
   
   return (
-    <div className="directions-control">
-      <button 
-        onClick={() => setShowDirections(!showDirections)}
-        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors mt-2"
-      >
-        {showDirections ? 'Hide Directions' : `Directions to ${facility.name}`}
-      </button>
+    <div className="directions-control mt-3">
+      <h4 className="text-sm font-medium mb-2">Get directions to nearest:</h4>
+      <div className="flex flex-wrap gap-2">
+        <button 
+          onClick={() => handleDirectionClick('hospital')}
+          className={`px-2 py-1 text-xs rounded transition-colors ${
+            activeDirections === 'hospital' 
+              ? 'bg-red-600 text-white' 
+              : 'bg-red-100 text-red-800 hover:bg-red-200'
+          }`}
+        >
+          Hospital
+        </button>
+        
+        <button 
+          onClick={() => handleDirectionClick('school')}
+          className={`px-2 py-1 text-xs rounded transition-colors ${
+            activeDirections === 'school' 
+              ? 'bg-blue-600 text-white' 
+              : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+          }`}
+        >
+          School
+        </button>
+        
+        <button 
+          onClick={() => handleDirectionClick('municipality')}
+          className={`px-2 py-1 text-xs rounded transition-colors ${
+            activeDirections === 'municipality' 
+              ? 'bg-green-600 text-white' 
+              : 'bg-green-100 text-green-800 hover:bg-green-200'
+          }`}
+        >
+          Municipality
+        </button>
+      </div>
       
-      {showDirections && (
-        <RoutingMachine 
-          start={[person.latitude, person.longitude]} 
-          end={[facility.lat, facility.lng]} 
-        />
+      {/* Render appropriate routing based on selection */}
+      {activeDirections === 'hospital' && nearestHospital && (
+        <div className="mt-2">
+          <p className="text-xs text-gray-600 mb-1">
+            Routing to {nearestHospital.name} ({(nearestHospital.distance || 0).toFixed(2)} km)
+          </p>
+          <RoutingMachine 
+            start={[person.latitude, person.longitude]} 
+            end={[nearestHospital.lat, nearestHospital.lng]} 
+            color="#ef4444"
+          />
+        </div>
+      )}
+      
+      {activeDirections === 'school' && nearestSchool && (
+        <div className="mt-2">
+          <p className="text-xs text-gray-600 mb-1">
+            Routing to {nearestSchool.name} ({(nearestSchool.distance || 0).toFixed(2)} km)
+          </p>
+          <RoutingMachine 
+            start={[person.latitude, person.longitude]} 
+            end={[nearestSchool.lat, nearestSchool.lng]}
+            color="#3b82f6" 
+          />
+        </div>
+      )}
+      
+      {activeDirections === 'municipality' && nearestMunicipality && (
+        <div className="mt-2">
+          <p className="text-xs text-gray-600 mb-1">
+            Routing to {nearestMunicipality.name} ({(nearestMunicipality.distance || 0).toFixed(2)} km)
+          </p>
+          <RoutingMachine 
+            start={[person.latitude, person.longitude]} 
+            end={[nearestMunicipality.lat, nearestMunicipality.lng]}
+            color="#10b981"
+          />
+        </div>
       )}
     </div>
   );
@@ -211,19 +333,15 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
     setIsOpen(true);
   }, []);
   
-  // Check if person has video media or images
-  const hasVideoOrImages = useMemo(() => {
-    const hasVideo = person.media?.some(m => m.mediaType === 'video');
-    const hasImages = (person.images?.length ?? 0) > 0 || person.media?.some(m => m.mediaType === 'image');
-    return hasVideo || hasImages;
-  }, [person.media, person.images]);
+  // Check if person has video media
+  const hasVideo = useMemo(() => {
+    return person.media?.some(m => m.mediaType === 'video') || false;
+  }, [person.media]);
 
-  // Find nearest facility if the person has video or images
-  const nearestFacility = useMemo(() => {
-    if (!hasVideoOrImages) return null;
-    
-    return findNearestFacility(person.latitude, person.longitude);
-  }, [person.latitude, person.longitude, hasVideoOrImages]);
+  // Check if person has images (for displaying in popup)
+  const hasImages = useMemo(() => {
+    return (person.images?.length ?? 0) > 0 || person.media?.some(m => m.mediaType === 'image');
+  }, [person.media, person.images]);
   
   // Lazy load images only when popup is open
   const mediaContent = useMemo(() => {
@@ -296,12 +414,15 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
         eventHandlers={{ click: handleMarkerClick }}
       >
         <Tooltip>
-          <strong>{`${person.firstName} ${person.lastName}`}</strong><br />
-          {person.disabilityType}
+          <div className="tooltip-content">
+            <strong>{`${person.firstName} ${person.lastName}`}</strong><br />
+            <span>{person.disabilityType}</span>
+            {hasVideo && <span className="block text-xs italic mt-1">(Has video - click for directions)</span>}
+          </div>
         </Tooltip>
         <Popup 
-          minWidth={250} 
-          maxWidth={300}
+          minWidth={280} 
+          maxWidth={320}
           eventHandlers={{
             popupclose: () => setIsOpen(false)
           }}
@@ -320,9 +441,9 @@ const PersonMarker = ({ person }: { person: PersonMapData }) => {
             )}
             {mediaContent}
             
-            {/* Show directions option if the person has video or images */}
-            {hasVideoOrImages && nearestFacility && (
-              <DirectionsControl person={person} facility={nearestFacility} />
+            {/* Show directions options if the person has video */}
+            {hasVideo && (
+              <DirectionsControl person={person} hasVideo={hasVideo} />
             )}
           </div>
         </Popup>
@@ -340,14 +461,14 @@ const FacilityMarker = ({ facility }: { facility: Facility }) => {
     >
       <Tooltip>
         <strong>{facility.name}</strong><br />
-        {facility.type === 'hospital' ? 'Hospital' : 'School'}
+        {facility.type.charAt(0).toUpperCase() + facility.type.slice(1)}
       </Tooltip>
       <Popup>
         <div className="p-2">
           <h3 className="text-lg font-semibold mb-2">
             {facility.name}
           </h3>
-          <p><strong>Type:</strong> {facility.type === 'hospital' ? 'Hospital' : 'School'}</p>
+          <p><strong>Type:</strong> {facility.type.charAt(0).toUpperCase() + facility.type.slice(1)}</p>
           <p><strong>Location:</strong> {facility.lat.toFixed(4)}, {facility.lng.toFixed(4)}</p>
         </div>
       </Popup>
@@ -367,6 +488,10 @@ const FacilityLegend = () => {
       <div className="flex items-center space-x-2">
         <div className="w-3 h-3 rounded-full bg-blue-500"></div>
         <span className="text-xs text-gray-700">School</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+        <span className="text-xs text-gray-700">Municipality</span>
       </div>
     </div>
   );
@@ -460,7 +585,7 @@ export default function MapComponent({ persons }: MapComponentProps) {
       <div className="absolute top-4 right-4 z-[1000] bg-white p-3 rounded-lg shadow-md border border-gray-200 max-w-xs">
         <h4 className="text-sm font-semibold mb-1">Guimbal Facilities</h4>
         <p className="text-xs text-gray-600">
-          Hospitals (red) and schools (blue) near Guimbal are shown on the map. Click on person markers with media or proof images to get directions to their nearest facility.
+          Click on person markers with video content (indicated in tooltip) to see routing options to the nearest hospital, school, or municipality building.
         </p>
       </div>
     </div>

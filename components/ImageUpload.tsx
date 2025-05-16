@@ -21,6 +21,7 @@ interface MediaUploaderProps {
   showExistingMedia?: boolean; // Whether to show existing media
   initialMediaType?: 'image' | 'video'; // Optional initial media type
   maxAllowed?: number; // Maximum number of media items allowed
+  maxVideosAllowed?: number; // Maximum number of videos allowed
 }
 
 const MediaUploader: React.FC<MediaUploaderProps> = ({
@@ -32,7 +33,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   apiEndpoint = '/api/upload',
   showExistingMedia = true,
   initialMediaType = 'image',
-  maxAllowed = 4
+  maxAllowed = 4,
+  maxVideosAllowed = 4
 }) => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -49,6 +51,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     createdAt: string;
     mediaType: 'image' | 'video';
   }>>([]);
+  const [videoCount, setVideoCount] = useState<number>(0);
+  const [videoLimitReached, setVideoLimitReached] = useState<boolean>(false);
 
   // Fetch existing media when component mounts or idNumber changes
   useEffect(() => {
@@ -63,6 +67,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           const data = await response.json();
           if (data.success && data.media) {
             setExistingMedia(data.media);
+            
+            // Count the number of videos
+            const videos = data.media.filter((item: any) => item.mediaType === 'video');
+            setVideoCount(videos.length);
+            setVideoLimitReached(videos.length >= maxVideosAllowed);
           }
         } catch (err) {
           console.error('Error fetching media:', err);
@@ -73,7 +82,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     };
 
     fetchExistingMediaInternal();
-  }, [idNumber, showExistingMedia]);
+  }, [idNumber, showExistingMedia, maxVideosAllowed]);
 
   // Moved fetchExistingMedia inside the component to be used elsewhere
   const fetchExistingMedia = async () => {
@@ -88,6 +97,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       const data = await response.json();
       if (data.success && data.media) {
         setExistingMedia(data.media);
+        
+        // Count the number of videos
+        const videos = data.media.filter((item: any) => item.mediaType === 'video');
+        setVideoCount(videos.length);
+        setVideoLimitReached(videos.length >= maxVideosAllowed);
       }
     } catch (err) {
       console.error('Error fetching media:', err);
@@ -118,6 +132,13 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     // Validate file type
     if (!isVideo && !isImage) {
       setError('Please select an image or video file.');
+      return;
+    }
+
+    // Check if video limit has been reached
+    if (isVideo && videoLimitReached) {
+      setError(`Maximum of ${maxVideosAllowed} videos allowed. Please use images instead or delete an existing video.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -161,6 +182,12 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     // Check if we've reached the maximum number of media items
     if (existingMedia.length >= maxAllowed) {
       setError(`Maximum of ${maxAllowed} media items allowed per ID. Please delete one before uploading a new one.`);
+      return;
+    }
+
+    // Check if video limit has been reached for video uploads
+    if (mediaType === 'video' && videoLimitReached) {
+      setError(`Maximum of ${maxVideosAllowed} videos allowed. Please use images instead or delete an existing video.`);
       return;
     }
 
@@ -260,7 +287,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   };
 
   // Handle deleting an existing media item
-  const handleDeleteMedia = async (mediaId: number) => {
+  const handleDeleteMedia = async (mediaId: number, mediaType: 'image' | 'video') => {
     if (!confirm('Are you sure you want to delete this media item?')) {
       return;
     }
@@ -359,7 +386,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               {item.description}
             </p>
             <button
-              onClick={() => handleDeleteMedia(item.id)}
+              onClick={() => handleDeleteMedia(item.id, item.mediaType)}
               className="mt-2 flex items-center text-xs text-red-600 hover:text-red-800"
             >
               <Trash2 size={12} className="mr-1" />
@@ -384,7 +411,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               {item.description}
             </p>
             <button
-              onClick={() => handleDeleteMedia(item.id)}
+              onClick={() => handleDeleteMedia(item.id, item.mediaType)}
               className="mt-2 flex items-center text-xs text-red-600 hover:text-red-800"
             >
               <Trash2 size={12} className="mr-1" />
@@ -402,9 +429,19 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         <h3 className="text-lg font-medium text-gray-800">Upload Media</h3>
         <p className="text-sm text-gray-500">{displayText}</p>
         {existingMedia.length > 0 && (
-          <p className="text-xs text-gray-400 mt-1">
-            {existingMedia.length} of {maxAllowed} media items uploaded
-          </p>
+          <div className="mt-1">
+            <p className="text-xs text-gray-400">
+              {existingMedia.length} of {maxAllowed} media items uploaded
+            </p>
+            <p className="text-xs text-gray-400">
+              {videoCount} of {maxVideosAllowed} videos uploaded
+              {videoLimitReached && (
+                <span className="text-amber-600 ml-1 font-medium">
+                  (Video limit reached - only image uploads allowed)
+                </span>
+              )}
+            </p>
+          </div>
         )}
       </div>
 
@@ -418,11 +455,15 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         >
           <div className="flex gap-2">
             <Camera size={36} className="text-gray-400" />
-            <Film size={36} className="text-gray-400" />
+            {!videoLimitReached && <Film size={36} className="text-gray-400" />}
           </div>
           <p className="text-sm text-gray-500 mb-1 mt-2">Click to select media</p>
           <p className="text-xs text-gray-400">Images: JPG, PNG, GIF (max 5MB)</p>
-          <p className="text-xs text-gray-400">Videos: MP4, MOV, WebM (max 500MB)</p>
+          {!videoLimitReached ? (
+            <p className="text-xs text-gray-400">Videos: MP4, MOV, WebM (max 500MB)</p>
+          ) : (
+            <p className="text-xs text-amber-600">Video uploads limit reached ({maxVideosAllowed}/{maxVideosAllowed})</p>
+          )}
         </div>
       )}
 
@@ -431,7 +472,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*,video/*"
+        accept={videoLimitReached ? "image/*" : "image/*,video/*"}
         className="hidden"
       />
 

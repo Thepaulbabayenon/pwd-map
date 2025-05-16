@@ -48,6 +48,7 @@ declare module 'leaflet' {
 interface RoutingMachineProps {
   start: LatLngExpression;
   end: LatLngExpression;
+  color?: string; // Added color prop with optional type
 }
 
 // Calculate distance between two points in km
@@ -74,12 +75,12 @@ function deg2rad(deg: number): number {
 }
 
 // Draw straight line between points (fallback when routing fails)
-function drawStraightLine(map: L.Map, start: LatLngExpression, end: LatLngExpression): L.Polyline {
+function drawStraightLine(map: L.Map, start: LatLngExpression, end: LatLngExpression, color: string = 'blue'): L.Polyline {
   const startLatLng = L.latLng(start as L.LatLngTuple); // Cast to ensure Leaflet gets valid types
   const endLatLng = L.latLng(end as L.LatLngTuple);
 
   const line = L.polyline([startLatLng, endLatLng], {
-    color: 'blue',
+    color: color, // Use the provided color
     dashArray: '5, 10',
     weight: 3,
     opacity: 0.7
@@ -109,7 +110,7 @@ interface RoutingControlOptions {
   createMarker: () => null;
 }
 
-const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
+const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end, color = 'green' }) => {
   const map = useMap();
   const [error, setError] = useState<string | null>(null);
   const straightLineRef = useRef<L.Polyline | null>(null);
@@ -146,7 +147,7 @@ const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
 
     if (directDistance > 500) { // Example threshold: 500km
       setError("Distance too large for demo routing (>500km). Showing direct line.");
-      straightLineRef.current = drawStraightLine(map, start, end);
+      straightLineRef.current = drawStraightLine(map, start, end, color);
       setRouteDistance(directDistance); // Show direct distance here
       setRouteAttempted(true); // Mark as attempted to show info
       return; // Skip actual routing
@@ -173,7 +174,7 @@ const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
         draggableWaypoints: false,
         fitSelectedRoutes: 'smart',
         lineOptions: {
-          styles: [{ color: 'green', opacity: 0.9, weight: 6 }],
+          styles: [{ color: color, opacity: 0.9, weight: 6 }], // Use the provided color
           // These properties are required to be defined without optionality
           // to match the @types/leaflet-routing-machine declarations
           extendToWaypoints: true,
@@ -199,7 +200,7 @@ const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
         } else {
           setError("No routes found.");
           if (!straightLineRef.current) { // Fallback if no routes but also no prior error/line
-            straightLineRef.current = drawStraightLine(map, start, end);
+            straightLineRef.current = drawStraightLine(map, start, end, color);
             setRouteDistance(directDistance);
           }
         }
@@ -214,7 +215,7 @@ const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
         // Fallback to straight line if routing fails and not already drawn
         if (!straightLineRef.current) {
           console.log("Falling back to straight line due to routing error...");
-          straightLineRef.current = drawStraightLine(map, start, end);
+          straightLineRef.current = drawStraightLine(map, start, end, color);
           setRouteDistance(directDistance); // Show direct distance
         }
       });
@@ -225,13 +226,13 @@ const RoutingMachine: React.FC<RoutingMachineProps> = ({ start, end }) => {
       setError("Failed to initialize routing component.");
       // Fallback to straight line if setup fails
       if (!straightLineRef.current) {
-        straightLineRef.current = drawStraightLine(map, start, end);
+        straightLineRef.current = drawStraightLine(map, start, end, color);
         setRouteDistance(directDistance);
       }
     }
 
     return cleanupRouting; // Cleanup on unmount or when deps change
-  }, [map, start, end, cleanupRouting]); // Added cleanupRouting to dependencies
+  }, [map, start, end, color, cleanupRouting]); // Added color and cleanupRouting to dependencies
 
   // Render UI for distance and errors
   return (

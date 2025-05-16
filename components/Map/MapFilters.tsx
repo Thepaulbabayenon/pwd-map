@@ -189,7 +189,7 @@ export default function MapFilters({ initialData, disabilityTypes }: MapFiltersP
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{person.firstName} {person.lastName}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{person.disabilityType || 'Unknown'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{person.specificDisability || 'Not specified'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{person.images?.length || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{person.media?.length || 0}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <a href={`/home/persons/${person.id}`} className="text-blue-600 hover:text-blue-900">View</a>
                     </td>
